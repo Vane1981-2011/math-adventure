@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#f7f4ef">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e0582a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23ffffff' font-family='serif'%3E%E6%95%B0%3C/text%3E%3C/svg%3E">
+<meta name="description" content="9 座数学试炼塔、108 道初中数学题，随机抽题闯关，支持错题复习与知识点训练。本机存档，免费练习。">
+<meta property="og:title" content="数学大冒险 · 巅峰试炼">
+<meta property="og:description" content="9 座数学试炼塔、108 道初中数学题，随机抽题闯关，支持错题复习与知识点训练。">
+<meta property="og:type" content="website">
+<title>数学大冒险 · 巅峰试炼</title>
+<style>
+/* ================================================================
+   设计系统 v2 · 双场景
+   学习场景（花瓣风）：米白底 / 白卡 / 大留白 / 图片优先 / 细阴影
+   战斗场景（竞技场）：近黑底 / 橙金 / 高对比
+   ================================================================ */
+:root{
+  --accent:#e0582a; --accent2:#d9542a; --gold:#c99a3c;
+  --ok:#3f8f52; --err:#c9493c;
+  --r-lg:18px; --r-md:14px; --r-sm:10px;
+  --shadow-1:0 2px 10px rgba(90,70,40,.06);
+  --shadow-2:0 10px 26px rgba(90,70,40,.12);
+}
+body[data-scene="learn"], body{
+  --bg:#f7f4ef; --bg2:#f2ece1;
+  --card:#ffffff; --surface:#fbf9f5; --hover:#f1ece3;
+  --border:#e9e2d6; --border2:#f0e9dd;
+  --t1:#2d2a26; --t2:#6f6a61; --t3:#6b645a;
+  --obg:#eef6ef; --ebg:#fdeeea;
+  --navbg:rgba(255,255,255,.92);
+  --chipbg:#f8f1e4; --chiptx:#8a6b3f;
+  --gold:#c99a3c;
+}
+body[data-scene="battle"]{
+  --bg:#0a0806; --bg2:#120d09;
+  --card:#14110e; --surface:#1a1612; --hover:#221d18;
+  --border:#2a241e; --border2:#241d17;
+  --t1:#e8e0d8; --t2:#a09888; --t3:#948a7c;
+  --obg:rgba(106,158,110,.12); --ebg:rgba(192,80,64,.10);
+  --navbg:rgba(14,10,6,.92);
+  --chipbg:#221b14; --chiptx:#c9a06a;
+  --gold:#d4a843;
+  --shadow-1:0 2px 10px rgba(0,0,0,.3);
+  --shadow-2:0 10px 26px rgba(0,0,0,.45);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100vh;min-height:100dvh;
+  background:var(--bg);color:var(--t1);
+  font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
+  font-size:16px;line-height:1.6;
+  overflow-x:hidden;-webkit-tap-highlight-color:transparent;
+  transition:background .25s ease,color .25s ease;
+}
+button,input{font-family:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi2{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ================= 登录 / 选角 ================= */
+#lv{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px 20px;overflow-y:auto;background:
+  radial-gradient(ellipse at 50% -10%,rgba(201,154,60,.10),transparent 60%),
+  radial-gradient(ellipse at 100% 100%,rgba(224,88,42,.05),transparent 55%),
+  var(--bg)}
+#lv.active{display:flex}
+.lm{position:relative;z-index:1;width:100%;max-width:430px;animation:fi2 .6s ease}
+.llo{text-align:center;margin-bottom:4px}
+.lti{display:flex;justify-content:center;gap:.06em;font-family:'Songti SC','Noto Serif SC',Georgia,serif;font-weight:700;margin-bottom:2px}
+.lti span{font-size:clamp(2rem,6.4vw,2.5rem);background:linear-gradient(180deg,#4a4136 0%,#7a6340 55%,#c99a3c 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.02em}
+.lssp{display:inline-block;width:1.7em}  /* 字母间距已用于字间，词间需额外留白才分得开 */
+.lsu{text-align:center;color:#6f6557;margin-bottom:6px;white-space:nowrap;
+  font-size:clamp(10px,.55vw + 9px,12px);letter-spacing:clamp(1.6px,.9vw,5px)}
+.lhh{text-align:center;font-size:12px;letter-spacing:2px;color:#6f6557;margin:22px 0 -4px}
+.lhg{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 12px;margin:14px 0 22px}
+.lhc{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .25s ease}
+.lhc:hover{transform:translateY(-3px)}
+.lhc:focus-visible{outline-offset:6px;border-radius:20px}
+.lhf{width:86px;height:86px;border-radius:24px;position:relative;overflow:hidden;background:var(--card);
+  border:2px solid var(--border2);box-shadow:var(--shadow-1);transition:border-color .25s,box-shadow .25s,transform .25s}
+.lhi{position:absolute;inset:0}
+.lhi img{width:100%;height:100%;object-fit:cover;display:block}
+.lhc:hover .lhf{box-shadow:var(--shadow-2);transform:scale(1.02)}
+.lhc.sel .lhf{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 0 0 4px rgba(201,154,60,.16),0 10px 24px rgba(201,154,60,.24)}
+.lhn{margin-top:8px;font-size:12px;font-weight:600;color:var(--t2);letter-spacing:1px;transition:color .25s}
+.lhc.sel .lhn{color:var(--gold)}
+.lht{margin-top:2px;font-size:11px;color:#6f6557}
+.lin{display:flex;justify-content:center;margin-bottom:12px}
+.lin input{width:100%;max-width:330px;display:block;margin:0 auto;padding:14px 16px;border-radius:var(--r-md);outline:none;
+  border:1.5px solid var(--border);background:var(--card);color:var(--t1);font-size:16px;text-align:center;
+  transition:border-color .2s,box-shadow .2s}
+.lin input::placeholder{color:#6f6557}
+.lin input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(224,88,42,.08)}
+.lin input.input-error{border-color:var(--err)!important;box-shadow:0 0 0 4px rgba(201,73,60,.10)!important;animation:shake .4s ease}
+.lpw{position:relative;width:100%;display:flex;justify-content:center}
+.lpt{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);padding:10px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.lpt:hover{color:var(--t2);background:var(--hover)}
+.lpt svg{width:18px;height:18px}
+.ler{text-align:center;font-size:13px;color:var(--err);margin:2px 0 6px;min-height:1.4em;line-height:1.5;opacity:0;transform:translateY(-4px);transition:.25s}
+.ler.show{opacity:1;transform:translateY(0)}
+.lfl{display:flex;justify-content:center;align-items:center;gap:18px;margin:4px 0 14px;font-size:14px}
+.lfl a{color:#8a6b3f;text-decoration:none;cursor:pointer;padding:8px 4px;border-bottom:1px solid transparent;transition:.2s}
+.lfl a:hover,.lfl a:focus-visible{border-bottom-color:rgba(201,154,60,.5);color:#6e5430}
+.lfl .ldv{color:#d6cdbc}
+.lbn{display:block;width:100%;max-width:330px;margin:0 auto;padding:15px;border:none;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#e8632f 0%,#d9542a 100%);color:#fff;font-size:17px;font-weight:700;letter-spacing:5px;
+  box-shadow:0 4px 14px rgba(217,84,42,.28);transition:transform .2s,box-shadow .2s,opacity .2s}
+.lbn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(217,84,42,.34)}
+.lbn:active{transform:scale(.98)}
+.lbn:disabled,.lbn.disabled{opacity:.5;cursor:not-allowed;box-shadow:none;filter:grayscale(.2)}
+.lenv{display:none;align-items:center;justify-content:center;gap:5px;margin-top:9px;padding:6px 10px;
+  border-radius:8px;background:rgba(201,154,60,.10);border:1px solid rgba(201,154,60,.22);
+  color:#9a7a3c;font-size:11.5px;line-height:1.45;text-align:center}
+.lenv.show{display:flex}
+.lenv svg{flex:0 0 auto}
+#lock-back{display:none;font-size:13px;padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--t2);margin-bottom:10px}
+
+/* 注册弹窗 */
+.rmb{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(45,42,38,.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:20px}
+.rmb.active{display:flex}
+.rmc{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:24px 22px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(60,45,25,.18);animation:fi2 .3s ease}
+.rmt{text-align:center;font-size:18px;font-weight:700;color:var(--t1);margin-bottom:18px;font-family:'Songti SC','Noto Serif SC',serif}
+.rmf{margin-bottom:12px}
+.rmf label{display:block;font-size:13px;color:var(--t3);margin-bottom:6px}
+.rmf input{width:100%;padding:13px 14px;border-radius:var(--r-sm);outline:none;border:1.5px solid var(--border);background:var(--surface);color:var(--t1);font-size:16px;text-align:center;transition:.2s}
+.rmf input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(224,88,42,.08)}
+.rme{color:var(--err);font-size:12px;margin-top:5px;text-align:center;min-height:1.05em;font-weight:600}
+.rmf input.input-error{border-color:var(--err)!important;box-shadow:0 0 0 4px rgba(201,73,60,.10)!important;animation:shake .4s ease}
+.rmb .lbn{font-size:16px;padding:13px;letter-spacing:3px}
+.rmca{text-align:center;margin-top:14px;font-size:13px;color:var(--t3);cursor:pointer;padding:6px}
+.rmca:hover{color:var(--t2)}
+.rmc{max-height:calc(100vh - 40px);overflow-y:auto}
+.rmh{font-size:12px;color:var(--t3);text-align:center;line-height:1.5;margin:-2px 0 12px}
+.ler.info{color:#a8621f}
+#go-register{color:var(--accent);font-weight:700}
+#go-register.attn{background:#fdeeea;border-radius:6px}
+
+
+/* ================= 主视图 ================= */
+#cv{display:none;position:relative;z-index:1;max-width:640px;margin:0 auto;padding-bottom:92px;min-height:100vh}
+#cv.active{display:block;animation:fi .4s ease}
+.hd{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:var(--navbg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border2)}
+.ha{width:44px;height:44px;border-radius:14px;overflow:hidden;flex-shrink:0;background:var(--hover);border:1px solid var(--border2)}
+.ha img{width:100%;height:100%;object-fit:cover;display:block}
+.hi{flex:1;min-width:0}
+.hn{font-size:16px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs{margin-top:2px}
+.atb{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.atb-btn{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--t2);font-size:12px;transition:.2s}
+.atb-btn:hover{background:var(--hover);color:var(--t1)}
+.atb-btn.back{color:var(--accent);border-color:rgba(224,88,42,.25)}
+.atb-btn.lock{color:#a8813c}
+.atb-btn.exit{color:#b06a60}
+.atb-btn svg{flex-shrink:0}
+.xp-bar{display:flex;align-items:center;gap:8px;padding:8px 18px 6px;font-size:12px;color:var(--t3)}
+.xp-bar span:first-child{white-space:nowrap;font-weight:600;color:var(--gold)}
+.xp-track{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.xp-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--accent));transition:width .5s}
+#sx{white-space:nowrap;color:var(--t2)}
+.ss{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 18px 12px}
+.si{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);padding:10px 4px;text-align:center;box-shadow:var(--shadow-1)}
+.sv{font-size:17px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.sl{font-size:11px;color:var(--t3);margin-top:2px;letter-spacing:1px}
+.rank{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--hover);border:1px solid var(--border)}
+
+/* 豆包助手条 */
+.tsb{display:none;align-items:center;gap:8px;margin:0 18px 12px;padding:9px 12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);font-size:12px;box-shadow:var(--shadow-1)}
+#cv.active .tsb{display:flex}
+.tsb-label{color:var(--t3);flex-shrink:0}
+.tsb-url{color:var(--t1);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tsb-status{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.tsb-status.open{background:var(--obg);color:var(--ok)}
+.tsb-status.closed{background:var(--ebg);color:var(--err)}
+.tsb-btns{display:flex;gap:4px;flex-shrink:0}
+.tsb-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--t2);font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.tsb-btn:hover{background:var(--hover);color:var(--accent);border-color:var(--accent)}
+.tsb-btn.disabled{opacity:.35;pointer-events:none}
+
+/* ================= 塔地图（花瓣式卡片网格） ================= */
+.sh{display:flex;align-items:baseline;gap:8px;padding:14px 18px 8px}
+.st{font-size:17px;font-weight:700;color:var(--t1)}
+.sx{font-size:12px;color:var(--t3)}
+.tl{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:4px 18px 24px}
+.tc{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px;cursor:pointer;box-shadow:var(--shadow-1);transition:transform .22s ease,box-shadow .22s ease}
+.tc:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.tc:active{transform:scale(.985)}
+.tc-visual{width:52px;height:52px;border-radius:16px;background:var(--chipbg);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px}
+.tcn{font-size:15px;font-weight:700;color:var(--t1)}
+.tcchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tchip{font-size:11px;color:var(--chiptx);background:var(--chipbg);padding:2px 7px;border-radius:20px;white-space:nowrap}
+.tcbar{height:4px;border-radius:2px;background:var(--border);margin-top:10px;overflow:hidden}
+.tcbar i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--accent));transition:width .5s}
+.tcr{position:absolute;top:14px;right:14px;text-align:right}
+.tcp{font-size:13px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.tcl{font-size:11px;color:var(--t3)}
+
+/* ================= 战斗（竞技场） ================= */
+.bp{max-width:600px;margin:0 auto;padding:16px 18px calc(96px + env(safe-area-inset-bottom))}
+@media(max-height:780px){body[data-scene="battle"] #pb{align-items:flex-start}}
+/* R5 战斗场景聚焦：隐去首页摘要与助手条，答题卡垂直居中 */
+body[data-scene="battle"] .ss,
+body[data-scene="battle"] .tsb{display:none!important}
+body[data-scene="battle"] #pb{align-items:center;justify-content:center;min-height:calc(100vh - 140px);min-height:calc(100dvh - 140px)}
+body[data-scene="battle"] #pb>.bp{width:100%}
+.bb{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow-1)}
+.bt{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.5px}
+.bh{display:flex;align-items:center;gap:10px;margin:12px 0}
+.bhb{flex:1;height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.bhf{height:100%;border-radius:4px;transition:width .4s ease}
+.bhp{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.bc{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--t3);margin-bottom:6px;flex-wrap:wrap}
+.btim{font-weight:700;color:var(--gold)}
+.bcc{font-weight:800;color:var(--accent);font-size:14px}
+.bnote{font-size:12px;color:var(--ok);margin:4px 0 2px}
+.bd{font-size:17px;font-weight:600;line-height:1.7;color:var(--t1);margin:10px 0 6px}
+.bfig{margin:8px 0;color:var(--t2)}
+.bfig svg{max-height:170px}
+.bo{display:flex;flex-direction:column;gap:10px;margin:14px 0 4px}
+.boi{width:100%;padding:14px 16px;border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--surface);color:var(--t1);font-size:15px;text-align:left;line-height:1.5;transition:.18s}
+.boi:hover{border-color:var(--accent);background:var(--hover)}
+.boi.correct{border-color:var(--ok);background:var(--obg);animation:fi2 .25s ease}
+.boi.wrong{border-color:var(--err);background:var(--ebg);animation:shake .35s ease}
+.boi.dis{pointer-events:none;opacity:.62;cursor:default}
+.boi.dis.correct,.boi.dis.wrong{opacity:1}
+.qe{display:none;margin:12px 0 0;padding:12px 14px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--border);font-size:14px;line-height:1.7;color:var(--t2)}
+.qe.show{display:block;animation:fi .25s ease}
+.bfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.bhint{font-size:12px;padding:9px 14px;border-radius:20px;border:1px dashed var(--gold);background:transparent;color:var(--gold);transition:.2s}
+.bhint:hover{background:rgba(201,154,60,.08)}
+.qn{border:none;border-radius:12px;background:var(--accent);color:#fff;padding:11px 22px;font-size:14px;font-weight:600;transition:.2s}
+.qn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+
+/* ================= 结算 ================= */
+.rp{padding:18px}
+.rc{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-lg);padding:24px 18px;text-align:center;box-shadow:var(--shadow-1)}
+.ri{font-size:44px;line-height:1.1;margin-bottom:6px}
+.rn{font-size:19px;font-weight:800;color:var(--t1)}
+.rs{font-size:13px;color:var(--t3);margin-top:4px}
+.rss{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border2);border-radius:var(--r-md);overflow:hidden;margin:16px 0}
+.rsi{background:var(--card);padding:10px 2px}
+.rsv{font-size:15px;font-weight:800;color:var(--accent)}
+.rsl{font-size:11px;color:var(--t3);margin-top:2px}
+.rbonus{font-size:13px;color:var(--gold);margin:6px 0;padding:8px;border-radius:8px;background:var(--chipbg)}
+.rba,.rbb{min-height:44px;padding:11px 22px;border-radius:12px;font-size:14px;font-weight:600;border:none;margin:12px 4px 0;transition:.2s}
+.rba{background:var(--accent);color:#fff}
+.rbb{background:var(--surface);color:var(--t2);border:1px solid var(--border)}
+.rba:hover{filter:brightness(1.06)}
+.rbb:hover{background:var(--hover);color:var(--t1)}
+
+/* ================= 战绩页 ================= */
+.ps{display:none;padding-bottom:84px}
+.ps .sh{margin-bottom:4px}
+.rhead{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-lg);padding:20px;margin:0 18px 14px;text-align:center;box-shadow:var(--shadow-1)}
+.cl{display:flex;flex-direction:column;gap:8px;padding:0 18px}
+.cc{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--shadow-1)}
+.cr{display:flex;align-items:center;gap:10px}
+.cb{flex:1;min-width:0}
+.rc3{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);padding:10px 2px;text-align:center}
+.rv{font-size:17px;font-weight:800;color:var(--accent)}
+.rl2{font-size:11px;color:var(--t3);margin-top:2px}
+
+/* ================= 复习 ================= */
+.kpcard{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;margin:0 18px 10px;box-shadow:var(--shadow-1)}
+.kbtn{border:none;background:linear-gradient(135deg,#e8632f,#d9542a);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;white-space:nowrap;min-height:40px}
+.kbtn:hover{filter:brightness(1.06)}
+.rsum{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;margin:14px 18px 0;box-shadow:var(--shadow-1)}
+.rqcard{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px;margin:0 18px 12px;box-shadow:var(--shadow-1)}
+#pq{display:none;padding-bottom:90px}
+#pq .sh{padding-top:8px}
+
+/* ================= 错题本 ================= */
+.wl{display:flex;flex-direction:column;gap:10px;padding:0 18px}
+.wc{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-1)}
+.wcq{font-size:14px;font-weight:600;line-height:1.6;color:var(--t1)}
+.wca{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0;font-size:12px}
+.wa{color:var(--err)}
+.wcok{color:var(--ok)}
+.wce{font-size:12px;color:var(--t2);background:var(--surface);border-radius:8px;padding:8px 10px;line-height:1.6}
+.wcf{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-top:8px}
+
+/* 空状态 */
+.es{text-align:center;padding:44px 20px;color:var(--t3)}
+.ei{font-size:36px;margin-bottom:8px}
+.et{font-size:13px;line-height:1.7}
+
+/* ================= 底部导航 ================= */
+.bn{display:none;position:fixed;bottom:0;left:0;right:0;justify-content:space-around;
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom));
+  background:var(--navbg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--border2);z-index:50}
+#cv.active~.bn{display:flex}
+.ni{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:64px;min-height:48px;padding:6px 12px;
+  font-size:12px;font-weight:600;color:var(--t3);text-decoration:none;cursor:pointer;transition:color .2s;border-radius:10px}
+.ni span{font-size:11px;letter-spacing:.5px}
+.ni.active{color:var(--accent)}
+.ni.active svg{stroke:var(--accent)}
+.ni:hover{color:var(--t1)}
+
+/* ================= 响应式 ================= */
+@media(min-width:768px){
+  #cv{max-width:760px}
+  .tl{grid-template-columns:repeat(3,1fr)}
+  .battle-wrap{max-width:640px}
+}
+@media(max-width:480px){
+  /* 小屏头部：段位已在经验条重复显示，隐去徽章；操作按钮转图标式，给昵称让位 */
+  .hs{display:none}
+  .atb-btn{font-size:0;gap:0;padding:7px 10px}
+  .atb-btn svg{width:16px;height:16px}
+}
+@media(max-width:380px){
+  .lhf{width:74px;height:74px;border-radius:20px}
+  .lhg{gap:16px 8px;margin:12px 0 18px}
+  .lhh{margin:18px 0 -2px}
+  .tl{gap:10px;padding:4px 14px 24px}
+  .tcn{font-size:14px}
+  .bd{font-size:16px}
+}
+@media(max-height:720px){
+  /* 矮屏（667/640/568）：压缩纵向节奏，保证"开启试炼"按钮与版权行落在首屏内；
+     内容仍可滚动兜底，顶部对齐避免溢出被裁 */
+  #lv{align-items:flex-start;padding:14px 20px 18px}
+  .lti span{font-size:1.85rem}
+  .lhh{margin:14px 0 -2px}
+  .lhg{gap:12px 8px;margin:10px 0 14px}
+  .lhf{width:62px;height:62px;border-radius:18px}
+  .lhn{margin-top:5px;font-size:11px}
+  .lht{font-size:10px;margin-top:1px}
+  .lin{margin-bottom:10px}
+  .lfl{margin:2px 0 10px}
+  .lbn{padding:13px}
+}
+@media(max-height:660px){
+  /* 极矮屏（640/568）：进一步压缩。存储提示条会占约 30px，
+     因此这里隐藏纯装饰性文案（英文副标题、星座分组标题、角色头衔），
+     保证"标题—头像—两个输入—主按钮"全部落在首屏，滚动仅作兜底 */
+  #lv{padding:8px 14px 12px}
+  .lti span{font-size:1.45rem}
+  .lsu{display:none}
+  .lhh{display:none}
+  .lhf{width:50px;height:50px;border-radius:15px}
+  .lhn{font-size:10px;margin-top:3px}
+  .lht{display:none}
+  .lhg{gap:8px 6px;margin:6px 0 10px}
+  .lin input{padding:11px 14px}
+  .lin{margin-bottom:8px}
+  .lfl{margin:0 0 8px}
+  .lbn{padding:11px}
+  .lenv{margin-top:6px;padding:4px 8px;font-size:10.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+</head>
+<body data-scene="learn">
+<!-- Login View -->
+<div id="lv" class="active">
+<div class="lm">
+<div class="lti"><span>数</span><span>学</span><span>大</span><span>冒</span><span>险</span></div>
+<div class="lsu">巅 峰 试 炼 · M A T H<span class="lssp"></span>A D V E N T U R E</div>
+<div class="lhh">选 择 你 的 守 护 星 座</div>
+<div class="lhg" id="lhg"></div>
+<div class="lin"><input id="lnick" type="text" placeholder="冒险者名號" maxlength="8" autocomplete="off" aria-label="冒险者名號"></div>
+<div class="lin"><button id="lock-back" onclick="showLoginView()">← 返回登录</button><div class="lpw"><input id="lpin" type="password" placeholder="六位密碼" maxlength="6" inputmode="numeric" autocomplete="off" aria-label="六位数字密码"><button class="lpt" id="lpt" type="button" aria-label="切换密码可见性" onclick="togglePwd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+<div class="ler" id="lerr" role="alert"></div>
+<div class="lfl"><a role="button" tabindex="0" onclick="handleForgotPwd()">忘记密码？</a><span class="ldv">|</span><a id="go-register" role="button" tabindex="0" onclick="showRegister()">新用户注册</a></div>
+<div><button class="lbn" id="lbtn">开 启 试 炼</button></div>
+<!-- Registration Modal -->
+<div class="rmb" id="reg-modal" role="dialog" aria-modal="true" aria-label="新冒险者注册"><div class="rmc"><div class="rmt">新冒险者注册</div><div class="rmf"><label for="reg-nick">冒险者名號</label><input id="reg-nick" type="text" placeholder="最多8个字" maxlength="8" autocomplete="off"><div class="rme" id="reg-nick-err"></div></div><div class="rmf"><label for="reg-pin">本机密码（6位数字）</label><input id="reg-pin" type="password" placeholder="••••••" maxlength="6" inputmode="numeric" autocomplete="off"><div class="rme" id="reg-pin-err"></div></div><div class="rmf"><label for="reg-pin2">再次输入密码</label><input id="reg-pin2" type="password" placeholder="••••••" maxlength="6" inputmode="numeric" autocomplete="off"><div class="rme" id="reg-pin2-err"></div></div><div class="rmh">密码仅保存在本机，忘记无法找回。<br>请勿使用常用密码。</div><button class="lbn" id="reg-submit" onclick="doRegister()">注 册 远 征</button><div class="rmca" role="button" tabindex="0" onclick="closeRegister()">← 返回登录</div></div></div>
+<div class="lenv" id="lenv" role="status"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>预览环境不支持本地存储，本次进度不会保存</span></div>
+</div></div>
+
+<!-- Content View -->
+<div id="cv">
+<div class="hd"><div class="ha" id="ha"></div><div class="hi"><div class="hn" id="hn">冒险者</div><div class="hs"><span id="rank-badge" class="rank">⚒ 见习旅人</span></div></div><div class="atb" id="action-toolbar"><button class="atb-btn back" id="back-btn" onclick="goBack()" style="display:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> 返回</button><button class="atb-btn lock" onclick="doLock()" title="锁定屏幕"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg> 锁定</button><button class="atb-btn exit" onclick="doLogout()" title="退出登录"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> 退出</button></div></div>
+<div class="xp-bar"><span id="st">⚒ 见习旅人</span><div class="xp-track" role="progressbar" aria-label="经验进度"><div class="xp-fill" id="sb" style="width:0%"></div></div><span id="sx">0 XP</span></div>
+<div class="ss"><div class="si"><div class="sv" id="sc">0/9</div><div class="sl">征 服</div></div><div class="si"><div class="sv" id="sm">0%</div><div class="sl">掌 握</div></div><div class="si"><div class="sv" id="sss">0天</div><div class="sl">连 击</div></div><div class="si"><div class="sv" id="sr">0</div><div class="sl">星 辉</div></div></div>
+<!-- Home - Tower Map -->
+<div id="ph"><div class="sh"><span class="st">⚔️ 试炼之塔</span><span class="sx">点击卡片开始挑战</span></div><div class="tl" id="tl"></div></div>
+
+<!-- Battle -->
+<div id="pb" style="display:none"><div class="bp" id="bcnt"></div></div>
+
+<!-- Practice / Result -->
+<div id="pq"><div id="rqc"></div></div><div id="pr" style="display:none"><div class="rp" id="rcnt"></div></div>
+<div class="ps" id="psx"><div class="sh"><span class="st">试炼战绩</span></div><div id="sc2"><div class="es"><div class="ei">📊</div><div class="et">完成首次试炼后，数据将在此展示</div></div></div></div>
+<div class="ps" id="prv"><div class="sh"><span class="st">错题复习</span></div><div id="rc"><div class="es"><div class="ei">🔄</div><div class="et">完成试炼后，错题会生成针对性强化训练</div></div></div></div>
+<div class="ps" id="pw"><div class="sh"><span class="st">错 题 本</span></div><div id="wc2"><div class="es"><div class="ei">📋</div><div class="et">暂无错题，继续试炼吧</div></div></div></div>
+</div>
+
+<nav class="bn"><a class="ni active" role="button" tabindex="0" data-page="home" onclick="switchPageTrial('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>试炼</span></a><a class="ni" role="button" tabindex="0" data-page="stats" onclick="switchPageTrial('stats')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>战绩</span></a><a class="ni" role="button" tabindex="0" data-page="review" onclick="switchPageTrial('review')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg><span>复习</span></a><a class="ni" role="button" tabindex="0" data-page="wrong" onclick="switchPageTrial('wrong')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg><span>错题</span></a></nav>
+
+
+<script id="lhdata" type="application/json">[{"id":"pegasus","name":"焰 羽","title":"赤鸢座守望者","clr":"#e0582a","glow":"rgba(224,88,42,0.5)","img":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2YwOGE1NSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2I4M2ExNCIvPjwvbGluZWFyR3JhZGllbnQ+CjxyYWRpYWxHcmFkaWVudCBpZD0icyIgY3g9IjUwJSIgY3k9IjMyJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iLjQ1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTQxMjEwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI5MCIgZmlsbD0idXJsKCNzKSIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijc5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cgo8cGF0aCBkPSJNNjIgMTI2IEw4MiA3OCBMMTAwIDEwOCBMMTIwIDcyIEwxNDAgMTIyIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuOSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSI2MiIgY3k9IjEyNiIgcj0iMy40IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iNjIiIGN5PSIxMjYiIHI9IjguNCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSI4MiIgY3k9Ijc4IiByPSI0LjYiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI4MiIgY3k9Ijc4IiByPSI5LjYiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTA4IiByPSIzLjIiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDgiIHI9IjguMiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSIxMjAiIGN5PSI3MiIgcj0iNC40IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMTIwIiBjeT0iNzIiIHI9IjkuNCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSIxNDAiIGN5PSIxMjIiIHI9IjMuNCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjE0MCIgY3k9IjEyMiIgcj0iOC40IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPgo8L3N2Zz4="},{"id":"dragon","name":"青 岚","title":"苍木座守望者","clr":"#7fb394","glow":"rgba(127,179,148,0.5)","img":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzlmZDZiNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzNmN2E1YyIvPjwvbGluZWFyR3JhZGllbnQ+CjxyYWRpYWxHcmFkaWVudCBpZD0icyIgY3g9IjUwJSIgY3k9IjMyJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iLjQ1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTQxMjEwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI5MCIgZmlsbD0idXJsKCNzKSIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijc5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cgo8cGF0aCBkPSJNMTAwIDE0NiBMMTAwIDExMiBNMTAwIDExMiBMNzggOTQgTDY4IDcwIE0xMDAgMTEyIEwxMjIgOTQgTDEzMiA3MCBNMTAwIDEyOCBMODQgMTQwIE0xMDAgMTI4IEwxMTYgMTQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuOSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNDYiIHI9IjMuMiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE0NiIgcj0iOC4yIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjExMiIgcj0iNC40IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTEyIiByPSI5LjQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+PGNpcmNsZSBjeD0iNzgiIGN5PSI5NCIgcj0iMy4yIiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iNzgiIGN5PSI5NCIgcj0iOC4yIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iNzAiIHI9IjQiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI2OCIgY3k9IjcwIiByPSI5IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjEyMiIgY3k9Ijk0IiByPSIzLjIiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMjIiIGN5PSI5NCIgcj0iOC4yIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjEzMiIgY3k9IjcwIiByPSI0IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMTMyIiBjeT0iNzAiIHI9IjkiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+Cjwvc3ZnPg=="},{"id":"phoenix","name":"炽 霄","title":"烈阳座守望者","clr":"#c97f9a","glow":"rgba(201,127,154,0.5)","img":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2U5YTNiOSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhkM2Y1YSIvPjwvbGluZWFyR3JhZGllbnQ+CjxyYWRpYWxHcmFkaWVudCBpZD0icyIgY3g9IjUwJSIgY3k9IjMyJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iLjQ1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTQxMjEwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI5MCIgZmlsbD0idXJsKCNzKSIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijc5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cgo8cGF0aCBkPSJNMTAwIDE1MiBDNzQgMTI4IDgyIDEwOCA5NCA5NiBDOTAgODIgOTYgNzAgMTAwIDYwIEMxMDQgNzAgMTEwIDgyIDEwNiA5NiBDMTE4IDEwOCAxMjYgMTI4IDEwMCAxNTIgWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utb3BhY2l0eT0iLjkiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iNjAiIHI9IjQuNiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjYwIiByPSI5LjYiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iOTYiIHI9IjMuNCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9Ijk2IiByPSI4LjQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTUyIiByPSIzLjQiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNTIiIHI9IjguNCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSI4MiIgY3k9IjEyOCIgcj0iMyIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjgyIiBjeT0iMTI4IiByPSI4IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjExOCIgY3k9IjEyOCIgcj0iMyIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjExOCIgY3k9IjEyOCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz4KPC9zdmc+"},{"id":"andromeda","name":"澄 澜","title":"流泉座守望者","clr":"#c9a86e","glow":"rgba(201,168,110,0.5)","img":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2U2Y2Q5OCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhhNmEyZiIvPjwvbGluZWFyR3JhZGllbnQ+CjxyYWRpYWxHcmFkaWVudCBpZD0icyIgY3g9IjUwJSIgY3k9IjMyJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iLjQ1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTQxMjEwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI5MCIgZmlsbD0idXJsKCNzKSIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijc5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cgo8cGF0aCBkPSJNNTggMTE4IEM3NCAxMDAgODggMTM2IDEwNCAxMTggQzEyMCAxMDAgMTM0IDEzNiAxNDggMTE4IE01OCAxMzggQzc0IDEyMCA4OCAxNTYgMTA0IDEzOCBDMTIwIDEyMCAxMzQgMTU2IDE0OCAxMzgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii45IiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxjaXJjbGUgY3g9IjU4IiBjeT0iMTE4IiByPSIzLjQiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI1OCIgY3k9IjExOCIgcj0iOC40IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjEwNCIgY3k9IjExOCIgcj0iNC4yIiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMTA0IiBjeT0iMTE4IiByPSI5LjIiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+PGNpcmNsZSBjeD0iMTQ4IiBjeT0iMTE4IiByPSIzLjQiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxNDgiIGN5PSIxMTgiIHI9IjguNCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSIxMDQiIGN5PSIxMzgiIHI9IjMiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMDQiIGN5PSIxMzgiIHI9IjgiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+Cjwvc3ZnPg=="},{"id":"cygnus","name":"霜 序","title":"寒星座守望者","clr":"#79b0bf","glow":"rgba(121,176,191,0.5)","img":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzlmZDBkYyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzNjNmY3YyIvPjwvbGluZWFyR3JhZGllbnQ+CjxyYWRpYWxHcmFkaWVudCBpZD0icyIgY3g9IjUwJSIgY3k9IjMyJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iLjQ1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTQxMjEwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI5MCIgZmlsbD0idXJsKCNzKSIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijc5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+Cgo8cGF0aCBkPSJNMTAwIDYwIEwxMDAgMTQwIE02NSA4MCBMMTM1IDEyMCBNMTM1IDgwIEw2NSAxMjAgTTEwMCAxMDAgTDEwMCA2MCBNMTAwIDEwMCBMMTM1IDgwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuOSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSI2MCIgcj0iNC40IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iNjAiIHI9IjkuNCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNDAiIHI9IjQuNCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE0MCIgcj0iOS40IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iODAiIHI9IjMuNiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iODAiIHI9IjguNiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSIxMzUiIGN5PSIxMjAiIHI9IjMuNiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEzNSIgY3k9IjEyMCIgcj0iOC42IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjEzNSIgY3k9IjgwIiByPSIzLjYiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMzUiIGN5PSI4MCIgcj0iOC42IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iMTIwIiByPSIzLjYiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI2NSIgY3k9IjEyMCIgcj0iOC42IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz4KPC9zdmc+"},{"id":"aries","name":"星 砚","title":"夜航座守望者","clr":"#d4a843","glow":"rgba(212,168,67,0.5)","img":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2VmYzk2ZSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzlhNmMxNiIvPjwvbGluZWFyR3JhZGllbnQ+CjxyYWRpYWxHcmFkaWVudCBpZD0icyIgY3g9IjUwJSIgY3k9IjMyJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iLjQ1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTQxMjEwIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI5MCIgZmlsbD0idXJsKCNzKSIvPgo8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijc5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4yMiIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KPHBhdGggZD0iTTEwMCA1OCBMMTA4IDkyIEwxNDIgMTAwIEwxMDggMTA4IEwxMDAgMTQyIEw5MiAxMDggTDU4IDEwMCBMOTIgOTIgWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utb3BhY2l0eT0iLjkiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPGNpcmNsZSBjeD0iMTAwIiBjeT0iNTgiIHI9IjQuMiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjU4IiByPSI5LjIiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjE2Ii8+PGNpcmNsZSBjeD0iMTQyIiBjeT0iMTAwIiByPSIzLjQiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxNDIiIGN5PSIxMDAiIHI9IjguNCIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIuMTYiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNDIiIHI9IjQuMiIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE0MiIgcj0iOS4yIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPjxjaXJjbGUgY3g9IjU4IiBjeT0iMTAwIiByPSIzLjQiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI1OCIgY3k9IjEwMCIgcj0iOC40IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii4xNiIvPgo8L3N2Zz4="}]</script>
+<script id="twdata" type="application/json">[{"id":"t1","name":"数与式","icon":"🔢","desc":"绝对值·根式·裂项·新定义","kps":["非负数与二次根式","整体代入与配方","幂的递推与裂项","新定义与数式综合"],"clr":"#da7e5e"},{"id":"t2","name":"方程深渊","icon":"⚖️","desc":"一元二次·换元·分式·应用","kps":["判别式与求根公式","换元法与含参方程","方程组·高次·分式方程","含参综合与实际应用"],"clr":"#c97f9a"},{"id":"t3","name":"不等式","icon":"📏","desc":"解集·含参讨论·最值转化","kps":["不等式(组)基础","二次函数与最值","含参不等式组","最值与实际应用"],"clr":"#8fa8c9"},{"id":"t4","name":"函数巅峰","icon":"📈","desc":"图像变换·k几何意义·应用","kps":["二次函数图像与性质","反比例函数与k","二次函数应用","函数综合"],"clr":"#7fb394"},{"id":"t5","name":"几何证明","icon":"🔺","desc":"全等推理·圆周角·垂径·相似","kps":["等腰·菱形·圆基础","全等与角度推理","圆的性质","相似与证明综合"],"clr":"#c9a86e"},{"id":"t6","name":"几何计算","icon":"📐","desc":"勾股·三角比·弧长扇形·应用","kps":["勾股与面积","解直角三角形","圆的计算","几何应用综合"],"clr":"#9d94c9"},{"id":"t7","name":"动态几何","icon":"🔄","desc":"动点最值·轨迹·存在性·分类","kps":["对称与最值基础","动点与轨迹","存在性问题","分类讨论综合"],"clr":"#79b0bf"},{"id":"t8","name":"概率统计","icon":"🎲","desc":"概率·树状图·统计量·决策","kps":["古典概型","树状图与列表","统计量","概率统计综合"],"clr":"#c98f6e"},{"id":"t9","name":"终极压轴","icon":"👑","desc":"新定义·函数几何·圆相似·压轴","kps":["新定义阅读","函数与几何综合","圆与相似综合","压轴分类讨论"],"clr":"#d4a843"}]</script>
+<script>
+// ================================================================
+// 数学大冒险·巅峰试炼 v2 —— 主逻辑（缺陷修复版）
+// 修复索引（对照质检报告）：P0-1转义收口 P0-2进度动态化 P0-3计时器收口
+// P0-6 popstate语义化 P1-1/2复习系统重写 P1-3统计真实化 P1-4账户冷却锁
+// P1-5假保存密码删除 P1-6单updateStats P1-7离开确认 P1-8标签真实化
+// P1-9限时分级 P2道具接入/错题去重/emoji/每日streak/豆包条降级/死代码清理
+// ================================================================
+
+// ====== Config（魔法数字集中管理） ======
+const P = 'math_trial_';
+const CFG = {
+  TIME_BY_FLOOR: [30, 40, 50, 60],   // 每层限时（秒）：基础30 → 压轴60
+  HP: 4,                               // 初始生命值（原为未定义，永远回退4）
+  LOCK_FAILS: 5,                       // 连续错密次数上限
+  LOCK_MS: 5 * 60 * 1000,             // 锁定冷却 5 分钟（可自动恢复，不再永久锁号）
+  DROP_RATE: 0.2,                      // 道具掉落概率
+  WRONG_MAX: 100                       // 错题本容量上限
+};
+const TOWERS = JSON.parse(document.getElementById('twdata').textContent);
+let user = null;
+let selHero = 'pegasus';
+let progress = {towers:{},totalStars:0,streak:{count:0,lastDate:''},rank:0,xp:0,items:{extraHp:0,hint:0},dailyCompleted:'',wrongQuestions:[],masteredKps:{}};
+
+// ====== 题库（108题 · 9塔×4层×3题） ======
+const Q={"t1_0":[["若|a-3|+(b+2)²=0，则a³+b³=","35","19","-1","-19",1,"a=3,b=-2→a³=27,b³=-8,和=19","","非负数之和为0⇒每项都为0"],["化简√(8-2√15)结果=","√3-√5","√5-√3","√5+√3","2√3",1,"8-2√15=(√5-√3)²，算术平方根取非负值，√5>√3","","双重根式：配成(√a-√b)²的形式"],["若x²-5x+1=0，则x²+1/x²=","21","23","25","27",1,"x+1/x=5→(x+1/x)²=x²+2+1/x²=25→x²+1/x²=23","","方程两边除以x：x+1/x=5，再平方"]],"t1_1":[["若a=√5+√3,b=√5-√3，则a²b-ab²=","4√15","4√3","2√15","8",1,"ab=(√5+√3)(√5-√3)=2,a-b=2√3→ab(a-b)=4√3","","a²b-ab²=ab(a-b)，分别求ab和a-b"],["已知x=√2-1，则x³+3x²+3x+1=","√2","2√2","4√2","8",1,"(x+1)³=√2³=2√2","","凑完全立方：(x+1)³，先求x+1"],["分解因式x⁴-10x²+9（在实数范围内分解到不能再分）=","(x²-1)(x²-9)","(x-1)(x+1)(x-3)(x+3)","(x²-1)(x²+1)","不能分解",1,"令t=x²→t²-10t+9=(t-1)(t-9)=(x²-1)(x²-9)=(x-1)(x+1)(x-3)(x+3)","","先十字相乘分解为两个二次式，再各分解"]],"t1_2":[["若a+1/a=4，则a⁴+1/a⁴=","16","48","194","196",2,"a²+1/a²=(a+1/a)²-2=14,a⁴+1/a⁴=(a²+1/a²)²-2=194","","两次平方递推：a²+1/a²=(a+1/a)²-2"],["1/(1+√2)+1/(√2+√3)+…+1/(√8+√9)=","3","2","4","5",1,"分母有理化：1/(√n+√(n+1))=√(n+1)-√n，累加=√9-√1=3-1=2","","分母有理化：1/(√n+√(n+1))=√(n+1)-√n"],["已知x=√3+1，求(x²-2x-2)/(x²-3)=","1","0","√3","-1",1,"x²=4+2√3,x²-2x-2=4+2√3-2√3-2-2=0,分子为0→分式值为0","","分子先降幂：x²-2x=(x-1)²-2"]],"t2_0":[["已知实数x₁,x₂满足x₁+x₂=3,x₁x₂=1,则x₁⁴+x₂⁴=","40","47","52","65",1,"x₁²+x₂²=(x₁+x₂)²-2x₁x₂=9-2=7；x₁⁴+x₂⁴=(x₁²+x₂²)²-2(x₁x₂)²=49-2=47","","平方和递推：和²-2积，再平方-2积²"],["方程x²-(k+1)x+k=0有两个相等实根，则k=","0","1","-1","不存在",1,"Δ=(k+1)²-4k=(k-1)²=0→k=1","","相等实根⇔判别式Δ=0"],["已知2x²-5x-3=0的两根为x₁,x₂,则1/x₁+1/x₂=","5/3","-5/3","3/5","-3/5",1,"因式分解:(2x+1)(x-3)=0→x₁=3,x₂=-1/2。1/3+1/(-1/2)=1/3-2=-5/3","","能因式分解就先求出两根，再代入"]],"t2_1":[["方程(x²-3x)²-2(x²-3x)-8=0的解中最大值为","2","4","-1","5",1,"令t=x²-3x→t²-2t-8=0→t=4或-2。t=4→x=4或-1；t=-2→x=1或2。最大值4","","换元：设t=x²-3x"],["若二次方程x²-2mx+m²-m-2=0有一根为0，则m=","0或-2","-1或2","1或-2","-1或1",1,"代入x=0:m²-m-2=0→(m-2)(m+1)=0→m=2或-1","","把x=0代入方程即可"],["已知方程x²-6x+m=0的两根差的平方为16,则m=","9","5","13","-5",1,"配方:x²-6x+m=0→(x-3)²=9-m,两根为x=3±√(9-m)。两根差=2√(9-m),平方=4(9-m)=16→9-m=4→m=5","","配方法直接把两根写成 3±√(9-m)"]],"t2_2":[["若方程组{ax+by=3,2ax-by=9}的解为(2,1)，则a²+b²=","10","13","5","25",2,"代入：2a+b=3,4a-b=9→a=2,b=-1→a²+b²=5","","把解回代方程组，解出a、b"],["方程x⁴-13x²+36=0的所有实数解的和=","5","13","0","-13",2,"(x²-4)(x²-9)=0→x=±2,±3→和为0","","x⁴方程换元成二次，注意±根成对"],["分式方程2/(x-1)=k/(x+1)无解，则k=","k=2","k=0","k=2或k=0","k为任意实数",2,"去分母:2(x+1)=k(x-1)→(2-k)x=-k-2。①k=2时:0·x=-4，整式方程无解→原方程无解；②k≠2时x=(-k-2)/(2-k)，检验增根:x=1代入得2-k=-k-2矛盾(舍)，x=-1代入得-(2-k)=-k-2→k=0，此时解x=-1恰使分母为0，是增根→原方程无解。综上k=2或k=0","","分式方程无解有两类：整式方程本身无解 + 解为增根"]],"t3_0":[["不等式组{-2x+3≥-1,x-1<3}的解集是","x<2","-1<x≤2","x≤2","x<4",2,"-2x+3≥-1→x≤2；x-1<3→x<4。交集：x≤2","","先解每个不等式，再取公共部分"],["若不等式ax>b的解集为x<b/a，则","a>0","a<0","a≥0","a≠0",1,"解集不等号方向改变→除以负数→a<0","","不等号方向改变⇔除以了负数"],["关于x的不等式组{x>3,x>a}的解集为x>3，则a的取值范围","a≥3","a<3","a≤3","a>3",2,"取大∩大=大的，说明3≥a→a≤3","","同大取大，取不到a⇔a≤3"]],"t3_1":[["二次函数y=x²-2，当y<2时x的取值范围是","x<-2或x>2","-√2<x<√2","-2<x<2","全体实数",2,"x²-2<2→x²<4→-2<x<2","","解 x²<4，或看抛物线在直线 y=2 下方的部分"],["设a,b为正实数,若a+b=4,则ab的最大值=","2","4","8","16",1,"ab≤(a+b)²/4=4，等号当a=b=2时取到","","定和求积最大：a=b时最大"],["|x-2|+|x+3|的最小值是","1","2","5","3",2,"|x-2|+|x+3|≥|(x-2)-(x+3)|=5","","|x-2|+|x+3|是到两定点距离之和"]],"t4_0":[["二次函数y=x²-4x+3的顶点坐标是","(-2,-1)","(2,1)","(2,-1)","(-2,1)",2,"y=(x-2)²-1，顶点(2,-1)","","配方法：y=(x-2)²-1"],["将y=x²图像左移2再下移3后解析式为","y=(x-2)²+3","y=(x-2)²-3","y=(x+2)²-3","y=(x+2)²+3",2,"左移:x→x+2得y=(x+2)²；下移3:y=(x+2)²-3","","左加右减，上加下减"],["反比例函数y=6/x图像上两点A(2,3),B(-3,-2)，AB中点坐标","(1/2,-1/2)","(-5/2,1/2)","(-1/2,1/2)","(1/2,5/2)",2,"((2-3)/2,(3-2)/2)=(-1/2,1/2)","","先验证A、B都在图像上，再用中点公式"]],"t4_1":[["在反比例函数y=k/x中,x>0时y随x增大而减小,则k","<0","≥0",">0","≤0",2,"k>0时双曲线两支分别位于第一、三象限，在每个象限内y随x增大而减小；k<0时两支位于第二、四象限，每个象限内y随x增大而增大。题设x>0且y随x增大而减小，说明第一象限的支递减，故k>0","","k>0→双曲线在一、三象限，每支内递减"],["点A(1,y₁)和B(2,y₂)在y=x²-3x+4上，y₁-y₂=","-2","0","2","4",1,"y₁=1-3+4=2,y₂=4-6+4=2→y₁=y₂→差为0","","代入两点，比较y₁、y₂（对称轴x=1.5）"],["一次函数y=kx+b的图像与直线y=2x-3平行,则k=","-2","1/2","2","-1/2",2,"两条直线平行⇔一次项系数k相等且常数项不同(否则为同一条直线)。题设两直线平行，故k=2(且b≠-3)","","平行线：k相等，b不同"]],"t5_0":[["在△ABC中,AB=AC=10,BC=12,则BC边上的高=","6","8","4√3","5√3",1,"高平分底边→RT△斜边10,直角边6→高=√(100-36)=8","","等腰三角形三线合一，用勾股定理"],["菱形对角线AC=8,BD=6,则菱形面积=","48","14","28","24",3,"菱形面积=对角线乘积/2=8×6/2=24","","菱形面积=对角线乘积的一半"],["在半径为5的圆中,弦AB=8,则圆心到弦的距离=","4","5","√41","3",3,"弦心距²+半弦²=半径²→d²+16=25→d=3","","垂径定理+勾股定理"]],"t5_1":[["△ABC中AD是角平分线,∠B=50°,∠C=30°,则∠BAD=","25°","40°","50°","80°",2,"∠A=180°-50°-30°=100°,AD平分→∠BAD=50°","","先求∠A，再用角平分线定义"],["等腰梯形ABCD中AD∥BC,AB=DC,∠B=60°,则∠D=","60°","120°","30°","150°",1,"∠C=∠B=60°,∠D=180°-∠C=120°","","等腰梯形同一腰上的角互补"],["△ABC≌△DEF,AB=5,BC=7,∠B=60°,则DF=","5","7","√39","√74",2,"全等对应边:AB↔DE,BC↔EF→DF=AC。作CH⊥AB于H(初中构造法):BH=7×cos60°=7/2,CH=7×sin60°=7√3/2,AH=5-7/2=3/2。AC²=AH²+CH²=(3/2)²+(7√3/2)²=9/4+147/4=156/4=39→AC=√39","","全等找对应边；作高构造直角三角形"]],"t6_0":[["在Rt△ABC中∠C=90°,BC=3,AC=4,则AB=","7","√7","3√2","5",3,"勾股:AB²=9+16=25→AB=5","","勾股定理"],["等边三角形边长为2,面积为","2√3","4√3","√3/2","√3",3,"S=√3/4×a²=√3/4×4=√3","","等边三角形高=边长×√3/2"],["矩形长8宽6,对角线长=","14","√28","48","10",3,"d=√(8²+6²)=√(64+36)=√100=10","","勾股定理：对角线=√(长²+宽²)"]],"t6_1":[["Rt△ABC中sinA=4/5,斜边AB=10,则BC=","6","8","10","12",1,"sinA=BC/AB→BC=10×4/5=8","","sinA=对边/斜边，先画图定对边"],["等腰三角形底边8,腰5,面积=","16","20","24","12",3,"高=√(25-16)=3,S=8×3/2=12","","等腰三角形三线合一，作底边上的高"],["在△ABC中a=3,b=4,∠C=60°,则c=","5","√13","√21","7",1,"作AH⊥BC于H:CH=AC×cos60°=4×1/2=2,AH=4×sin60°=2√3,BH=BC-CH=3-2=1。c²=AB²=AH²+BH²=(2√3)²+1²=12+1=13→c=√13","","遇60°角作垂线，拆成30-60直角三角形"]],"t7_0":[["点P在x轴上移动,A(3,3),B(-1,1),PA+PB最小值=","2√5","4√2","2√10","6",1,"A关于x轴对称点A'（3,-3),A'B=√((3+1)²+(-3-1)²)=√(16+16)=√32=4√2","","对称点法：A关于x轴对称后再连线"],["矩形长12宽5,点P沿边行走,把四条边各走一遍后回到出发点,最短路程=","30","24","17","34",3,"要恰好走遍四条边且回到原点，最短就是沿边界走一整圈=2×(12+5)=34","","四条边各走一遍再回起点⇒至少绕边界一整圈"],["线段AB=8,动点P在AB上移动,PA²+PB²最小值=","16","32","64","8",1,"设PA=x,PB=8-x→x²+(8-x)²=2x²-16x+64=2(x-4)²+32,最小值32","","PA²+PB²用中点，或配方看最小值"]],"t8_0":[["从1-5中任取两个不同数字,乘积为偶数的概率=","2/5","3/5","7/10","4/5",2,"任取两个不同数字共C(5,2)=10种。乘积为奇数需两数都是奇数:从{1,3,5}中选2个=C(3,2)=3种。乘积为偶数=10-3=7种，概率=7/10","","偶数反面是奇数：奇×奇才得奇"],["掷两枚骰子,点数和不小于10的概率=","1/6","1/4","1/3","1/2",0,"(4,6)(5,5)(5,6)(6,4)(6,5)(6,6)=6种,6/36=1/6","","列表枚举36种等可能结果"],["袋中有3红2白,不放回取两次都是红色的概率=","3/10","9/25","6/25","1/2",0,"第一次3/5,第二次2/4→3/5×2/4=6/20=3/10","","不放回：第二次只剩4个球"]],"t9_0":[["新定义:能被表示为两个不同完全平方数之差的数为\"星数\"，下列哪个数不可能是星数","3","8","2","15",2,"3=2²-1²,8=3²-1²,15=4²-1²。2无法表示为平方差","","m²-n²=(m+n)(m-n)，逐个尝试分解"],["抛物线y=-x²+2x+3与x轴交于A(-1,0),B(3,0)，点P是该抛物线上一动点，使S△PAB=6的点P共有几个","0","1","2","4",3,"AB=4,S=(1/2)×4×|yₚ|=6→|yₚ|=3。y=-(x-1)²+4。yₚ=3时-(x-1)²+4=3→(x-1)²=1→x=0,2，得2个点；yₚ=-3时-(x-1)²+4=-3→(x-1)²=7→x=1±√7，得2个点。共4个","<svg viewBox=\"0 0 220 180\" width=\"100%\" style=\"max-width:260px;display:block;margin:6px auto\"><line x1=\"15\" y1=\"110\" x2=\"200\" y2=\"110\" stroke=\"currentColor\" stroke-width=\"1.2\"/><line x1=\"50\" y1=\"10\" x2=\"50\" y2=\"160\" stroke=\"currentColor\" stroke-width=\"1.2\"/><polyline points=\"23,150 32,110 41,70 50,56 59,43 68,38 77,43 86,56 95,79 104,110 113,150\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/><circle cx=\"32\" cy=\"110\" r=\"2.6\" fill=\"currentColor\"/><circle cx=\"104\" cy=\"110\" r=\"2.6\" fill=\"currentColor\"/><circle cx=\"59\" cy=\"43\" r=\"2.4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><text x=\"22\" y=\"126\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"108\" y=\"126\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"63\" y=\"38\" font-size=\"11\" fill=\"currentColor\">P</text><text x=\"54\" y=\"16\" font-size=\"11\" fill=\"currentColor\">y</text><text x=\"196\" y=\"124\" font-size=\"11\" fill=\"currentColor\">x</text><text x=\"40\" y=\"124\" font-size=\"10\" fill=\"currentColor\">-1</text><text x=\"100\" y=\"124\" font-size=\"10\" fill=\"currentColor\">3</text></svg>","AB=4定长，高=|yₚ|，按yₚ=±3分类讨论"],["定义新运算：对非零实数a,b，a※b=(a+b)/(ab)，则1※2+2※3的值为","7/3","5/6","3/2","2",0,"1※2=(1+2)/(1×2)=3/2；2※3=(2+3)/(2×3)=5/6。3/2+5/6=9/6+5/6=14/6=7/3","","新定义题：逐个代入再求和"]],"t1_3":[["定义新运算：对任意实数a,b，a⊗b=a²-ab+b²，则2⊗3=","13","7","19","1",1,"2⊗3=2²-2×3+3²=4-6+9=7","","新定义题：把a,b的具体值代入定义式即可"],["已知x=2+√3，则x-1/x的值为","√3","2√3","4","2",1,"1/x=1/(2+√3)=(2-√3)/[(2+√3)(2-√3)]=(2-√3)/(4-3)=2-√3。x-1/x=2+√3-(2-√3)=2√3","","先分母有理化求1/x，注意(2+√3)(2-√3)=1"],["观察规律：1×3=2²-1，3×5=4²-1，5×7=6²-1，……，按此规律2017×2019=","2018²","2018²-1","2017²-1","2020²-1",1,"相邻两个奇数之积=中间偶数的平方减1：n(n+2)=(n+1)²-1。2017×2019=2018²-1","","两因数相差2，中间数平方减1"]],"t2_3":[["关于x的方程x²-2x+m=0无实数根，则m的取值范围是","m≥1","m<1","m>1","m≤1",2,"无实根⇔Δ<0：Δ=4-4m<0→m>1","","无实根⇔Δ<0（严格小于）"],["某商品原价100元，连续两次涨价后为121元，则平均每次涨价的百分率为","20%","21%","10%","11%",2,"设百分率为r：100(1+r)²=121→(1+r)²=1.21→1+r=1.1（舍去负值）→r=10%","","增长率模型：a(1+r)ⁿ"],["若方程x²+px+q=0的两根为2和-3，则p+q的值为","-6","5","-5","-1",2,"两根为2、-3的方程：x²+px+q=(x-2)(x+3)=x²+x-6，故p=1，q=-6，p+q=-5","","由根写因式分解式，再比对系数"]],"t3_2":[["关于x的不等式组{x<2a+1, x>3a-5}无解，则a的取值范围是","a>6","a<6","a≥6","a≤6",2,"无解⇔下界不小于上界：3a-5≥2a+1→a≥6。验证a=6时{x<13,x>13}确无公共部分","","无解⇔上界≤下界：3a-5≥2a+1"],["若关于x的不等式(a-1)x>a-1的解集为x<1，则a的取值范围是","a>1","a≥1","a<1","a≤1",2,"解集不等号方向改变，说明两边同除以了负数：a-1<0→a<1。验证：a<1时(a-1)x>a-1两边除以负数得x<1","","除以负数才掉头，先看系数符号"],["若关于x的不等式组{x>-2, x<m}恰有3个整数解，则m的取值范围是","1<m≤2","1≤m<2","0<m≤1","-1≤m<0",0,"整数解只能是-1,0,1：m须大于1（m=1时只有-1,0两个），且m最大到2（m=2时x<2仍含1）。故1<m≤2","","恰有3个整数解→先定整数，再卡住上下界"]],"t3_3":[["用长16m的篱笆围一个矩形菜园，其中一边靠墙（墙足够长），则菜园的最大面积为","16m²","28m²","32m²","30m²",2,"设垂直于墙的一边为x，则另一边为16-2x：S=x(16-2x)=-2(x-4)²+32，当x=4（另一边8m）时最大为32m²","","设一边列面积函数，配方求最值"],["函数y=x²-4x+7在0≤x≤3上的最小值为","4","7","3","2",2,"配方：y=(x-2)²+3，对称轴x=2在区间[0,3]内，故最小值在顶点处取得，为3","","先配方看对称轴是否在给定区间内"],["已知x+y=5，且x≥1,y≥1，则xy的最大值为","6","4","6.25","6.5",2,"xy=[(x+y)²-(x-y)²]/4=(25-(x-y)²)/4，当x=y=2.5时(x-y)²=0，xy最大=25/4=6.25（满足x,y≥1）","","定和求积：和一定，差越小积越大"]],"t4_2":[["某商品进价40元，售价50元时每月可售200件；售价每上涨1元，月销量减少10件。设售价上涨x元，月利润为W元，则W与x的函数关系是","W=-10(x-5)²+2250","W=-10(x+5)²+2250","W=-10x²+2000","W=10(x-5)²+2250",0,"单件利润=50+x-40=10+x，销量=200-10x，W=(10+x)(200-10x)=-10x²+100x+2000=-10(x-5)²+2250","","利润=(售价-进价)×销量，展开后配方"],["抛物线形拱桥跨度20m、拱高4m，以跨度中点为原点、纵轴过拱顶建立坐标系，则拱桥对应抛物线的解析式为","y=-x²/20+4","y=x²/25+4","y=-x²/25+4","y=-x²/25-4",2,"顶点(0,4)，设y=ax²+4。过端点(10,0)：0=100a+4→a=-1/25，故y=-x²/25+4","","设顶点式y=a(x-0)²+4，代入端点求a"],["二次函数y=x²-2x-3的图像与x轴两交点之间的距离为","2","5","6","4",3,"x²-2x-3=0→(x-3)(x+1)=0→x=3和x=-1，距离=3-(-1)=4","","先求两根，再算根间距（也即|x₁-x₂|）"]],"t4_3":[["直线y=2x+4与两坐标轴围成的三角形面积为","8","2","16","4",3,"与x轴交于(-2,0)，与y轴交于(0,4)，S=(1/2)×2×4=4","","求出两截距，直角三角形面积=两直角边积的一半"],["反比例函数y=4/x与正比例函数y=x的图像在第一象限的交点坐标是","(1,4)","(4,1)","(-2,-2)","(2,2)",3,"联立：x=4/x→x²=4→x=2（第一象限取正），y=2，交点(2,2)。(-2,-2)是第三象限交点","","联立方程求交点，注意象限取舍"],["点P在反比例函数y=6/x的图像上，PM⊥x轴于M，PN⊥y轴于N，则矩形PMON的面积为","3","12","36","6",3,"设P(a,6/a)，则PM=|6/a|，PN=|a|，S=|a|×|6/a|=6=|k|。这正是k的几何意义","","k的几何意义：矩形面积=|k|"]],"t5_2":[["⊙O中，圆心角∠AOB=100°，点C在优弧AB上，则圆周角∠ACB的度数为","100°","80°","130°","50°",3,"同弧所对圆周角等于圆心角的一半：∠ACB=(1/2)∠AOB=50°","<svg viewBox=\"0 0 220 160\" width=\"100%\" style=\"max-width:260px;display:block;margin:6px auto\"><circle cx=\"110\" cy=\"85\" r=\"60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><circle cx=\"110\" cy=\"85\" r=\"2.2\" fill=\"currentColor\"/><line x1=\"64\" y1=\"124\" x2=\"110\" y2=\"85\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"156\" y1=\"124\" x2=\"110\" y2=\"85\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"64\" y1=\"124\" x2=\"156\" y2=\"124\" stroke=\"currentColor\" stroke-width=\"1.2\"/><circle cx=\"110\" cy=\"25\" r=\"2.4\" fill=\"currentColor\"/><line x1=\"64\" y1=\"124\" x2=\"110\" y2=\"25\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><line x1=\"156\" y1=\"124\" x2=\"110\" y2=\"25\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><text x=\"100\" y=\"100\" font-size=\"11\" fill=\"currentColor\">O</text><text x=\"52\" y=\"140\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"160\" y=\"140\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"114\" y=\"18\" font-size=\"11\" fill=\"currentColor\">C</text></svg>","同弧：圆周角=圆心角的一半"],["△ABC内接于⊙O，若∠BAC=40°，则同弧所对圆心角∠BOC的度数为","40°","100°","160°","80°",3,"圆心角=同弧圆周角的2倍：∠BOC=2×40°=80°","<svg viewBox=\"0 0 220 160\" width=\"100%\" style=\"max-width:260px;display:block;margin:6px auto\"><circle cx=\"110\" cy=\"85\" r=\"60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><circle cx=\"110\" cy=\"85\" r=\"2.5\" fill=\"currentColor\"/><line x1=\"70\" y1=\"125\" x2=\"110\" y2=\"85\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"150\" y1=\"125\" x2=\"110\" y2=\"85\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"70\" y1=\"125\" x2=\"110\" y2=\"25\" stroke=\"currentColor\" stroke-width=\"1\"/><line x1=\"150\" y1=\"125\" x2=\"110\" y2=\"25\" stroke=\"currentColor\" stroke-width=\"1\"/><circle cx=\"110\" cy=\"25\" r=\"2.5\" fill=\"currentColor\"/><text x=\"100\" y=\"100\" font-size=\"11\" fill=\"currentColor\">O</text><text x=\"58\" y=\"140\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"154\" y=\"140\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"114\" y=\"18\" font-size=\"11\" fill=\"currentColor\">A</text></svg>","圆心角是圆周角的2倍"],["⊙O中直径CD⊥弦AB于点E，AB=12，DE=2，则⊙O的半径为","8","6","12","10",3,"设半径R，OE=R-2。垂径定理：AE=AB/2=6。Rt△OAE中：R²=6²+(R-2)²→R²=36+R²-4R+4→4R=40→R=10","<svg viewBox=\"0 0 200 170\" width=\"100%\" style=\"max-width:240px;display:block;margin:6px auto\"><circle cx=\"100\" cy=\"85\" r=\"60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"100\" y1=\"25\" x2=\"100\" y2=\"145\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"64\" y1=\"37\" x2=\"136\" y2=\"37\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M 100 43 L 106 43 L 106 37\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\"/><circle cx=\"100\" cy=\"85\" r=\"2.2\" fill=\"currentColor\"/><circle cx=\"100\" cy=\"25\" r=\"2.2\" fill=\"currentColor\"/><circle cx=\"100\" cy=\"145\" r=\"2.2\" fill=\"currentColor\"/><circle cx=\"100\" cy=\"37\" r=\"1.8\" fill=\"currentColor\"/><text x=\"92\" y=\"100\" font-size=\"11\" fill=\"currentColor\">O</text><text x=\"52\" y=\"32\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"140\" y=\"32\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"106\" y=\"32\" font-size=\"11\" fill=\"currentColor\">E</text><text x=\"92\" y=\"18\" font-size=\"11\" fill=\"currentColor\">D</text><text x=\"92\" y=\"160\" font-size=\"11\" fill=\"currentColor\">C</text></svg>","垂径定理+勾股：R²=(弦半)²+(R-DE)²"]],"t5_3":[["若△ABC∽△A′B′C′，相似比为2:3，则△ABC与△A′B′C′的面积比为","2:3","3:2","9:4","4:9",3,"相似图形面积比=相似比的平方=(2:3)²=4:9","","面积比=相似比的平方"],["在△ABC中，DE∥BC分别交AB于D、AC于E，AD:DB=1:2，则△ADE与△ABC的面积比为","1:3","1:6","2:3","1:9",3,"DE∥BC→△ADE∽△ABC。AD:AB=1:3，相似比1:3，面积比=1²:3²=1:9","","先求AD:AB，再平方"],["Rt△ABC中∠C=90°，AC=3，BC=4，CD是斜边AB上的高，则CD的长为","5/2","2","6/5","12/5",3,"AB=√(9+16)=5。面积法：S=(1/2)AC·BC=(1/2)AB·CD→CD=AC·BC/AB=12/5","<svg viewBox=\"0 0 200 160\" width=\"100%\" style=\"max-width:240px;display:block;margin:6px auto\"><line x1=\"40\" y1=\"130\" x2=\"180\" y2=\"130\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"40\" y1=\"130\" x2=\"40\" y2=\"25\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"40\" y1=\"25\" x2=\"180\" y2=\"130\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"40\" y1=\"130\" x2=\"90\" y2=\"63\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><path d=\"M 40 118 L 52 118 L 52 130\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\"/><circle cx=\"90\" cy=\"63\" r=\"2\" fill=\"currentColor\"/><text x=\"26\" y=\"144\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"28\" y=\"20\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"184\" y=\"144\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"94\" y=\"58\" font-size=\"11\" fill=\"currentColor\">D</text></svg>","面积法：两算法面积相等，解出高"]],"t6_2":[["半径为6的圆中，120°的圆心角所对的弧长为","2π","6π","12π","4π",3,"l=(n/360)×2πR=(120/360)×2π×6=4π","","弧长=(圆心角/360)×2πR"],["半径为3的扇形面积为3π，则该扇形的圆心角为","60°","90°","150°","120°",3,"S=(n/360)πR²→3π=(n/360)×9π→n=120","","扇形面积=(n/360)πR²"],["圆锥的底面半径为3，母线长为5，则圆锥的侧面积为","12π","8π","20π","15π",3,"S侧=πrl=π×3×5=15π（侧面展开是半径为母线长的扇形，弧长=底面周长6π，S=(1/2)×6π×5=15π）","","S侧=π×底面半径×母线"]],"t6_3":[["某坡面的铅直高度与水平宽度之比为1:√3，则该坡面的坡角（坡面与水平面的夹角）为","45°","60°","15°","30°",3,"tan坡角=1/√3=√3/3，特殊角正切值：tan30°=√3/3，故坡角=30°","","坡比=铅直:水平=tan坡角"],["在塔底同一直线方向上的一点A测得塔顶仰角为30°，向塔前进100m到达B点后，测得仰角为60°，则塔高为","100√3m","50m","100m","50√3m",3,"设塔高h、A到塔底距离d：tan30°=h/d，tan60°=h/(d-100)→d=√3h，d-100=h/√3→√3h-100=h/√3→两边乘√3：3h-100√3=h→h=50√3","<svg viewBox=\"0 0 240 150\" width=\"100%\" style=\"max-width:260px;display:block;margin:6px auto\"><line x1=\"10\" y1=\"130\" x2=\"230\" y2=\"130\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"170\" y1=\"130\" x2=\"170\" y2=\"43\" stroke=\"currentColor\" stroke-width=\"1.6\"/><line x1=\"20\" y1=\"130\" x2=\"170\" y2=\"43\" stroke=\"currentColor\" stroke-width=\"1\"/><line x1=\"120\" y1=\"130\" x2=\"170\" y2=\"43\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><circle cx=\"20\" cy=\"130\" r=\"2.4\" fill=\"currentColor\"/><circle cx=\"120\" cy=\"130\" r=\"2.4\" fill=\"currentColor\"/><text x=\"12\" y=\"146\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"116\" y=\"146\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"176\" y=\"126\" font-size=\"11\" fill=\"currentColor\">塔</text></svg>","两测点列两个正切方程，相减消去d"],["Rt△ABC中∠C=90°，AC=3，BC=4，将三角形绕直角边AC所在直线旋转一周，所得圆锥的全面积为","20π","16π","24π","36π",3,"绕AC旋转：底面半径=BC=4，母线=AB=5。S侧=π×4×5=20π，S底=π×4²=16π，全面积=36π","","绕哪条边转，另一条直角边就是底面半径"]],"t7_1":[["动点P在直线y=-2x+3上，其横坐标从0增大到2，则点P移动的路程为","4","2√13","5","2√5",3,"P(0,3)→P(2,-1)：水平位移2，竖直位移-4，路程=√(2²+4²)=√20=2√5","","路程=两点间距离=√(Δx²+Δy²)"],["矩形ABCD中AB=8，BC=6，P为对角线AC上一动点，则PB+PD的最小值为","8","14","7","10",3,"由三角形不等式：PB+PD≥BD=√(8²+6²)=10，当且仅当P落在线段BD上时取等。AC与BD互相平分，交于矩形中心，该点既在AC上又在线段BD上，故PB+PD的最小值就是BD=10","<svg viewBox=\"0 0 200 150\" width=\"100%\" style=\"max-width:240px;display:block;margin:6px auto\"><rect x=\"30\" y=\"20\" width=\"120\" height=\"90\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"30\" y1=\"20\" x2=\"150\" y2=\"110\" stroke=\"currentColor\" stroke-width=\"1\"/><line x1=\"30\" y1=\"110\" x2=\"150\" y2=\"20\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><circle cx=\"90\" cy=\"65\" r=\"3\" fill=\"currentColor\"/><text x=\"24\" y=\"16\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"152\" y=\"16\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"152\" y=\"122\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"22\" y=\"122\" font-size=\"11\" fill=\"currentColor\">D</text><text x=\"96\" y=\"60\" font-size=\"11\" fill=\"currentColor\">P</text></svg>","PB+PD≥BD，取等需P在线段BD上"],["直线y=x+2上到原点O距离最近的点是","(1,3)","(-2,0)","(0,2)","(-1,1)",3,"最近点=过O作直线的垂线的垂足。设P(x,x+2)，OP²=x²+(x+2)²=2(x+1)²+2，当x=-1时最小，P(-1,1)","","设点坐标，把距离平方配方求最小"]],"t7_2":[["正方形ABCD边长为4，E为AB的中点，P为对角线AC上一动点，则PE+PB的最小值为","2√5","4","2√2","4√2",0,"AC是BD的垂直平分线，P在AC上时PB=PD，故PE+PB=PE+PD≥ED。E(2,0)、D(0,4)：ED=√(4+16)=2√5，当P为ED与AC交点时取得","<svg viewBox=\"0 0 160 170\" width=\"100%\" style=\"max-width:200px;display:block;margin:6px auto\"><rect x=\"20\" y=\"20\" width=\"120\" height=\"120\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"20\" y1=\"20\" x2=\"140\" y2=\"140\" stroke=\"currentColor\" stroke-width=\"1\"/><circle cx=\"80\" cy=\"20\" r=\"2.5\" fill=\"currentColor\"/><line x1=\"80\" y1=\"20\" x2=\"20\" y2=\"140\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><text x=\"14\" y=\"16\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"144\" y=\"16\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"144\" y=\"148\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"10\" y=\"148\" font-size=\"11\" fill=\"currentColor\">D</text><text x=\"84\" y=\"14\" font-size=\"11\" fill=\"currentColor\">E</text><text x=\"94\" y=\"80\" font-size=\"11\" fill=\"currentColor\">P</text></svg>","PB=PD，转化为两点间线段最短"],["Rt△ABC中∠C=90°，AC=6，BC=8，P为斜边AB上一动点，则CP的最小值为","24/5","5","6","4",0,"CP最小=斜边上的高=AC·BC/AB=6×8/10=24/5（垂线段最短）","<svg viewBox=\"0 0 200 150\" width=\"100%\" style=\"max-width:240px;display:block;margin:6px auto\"><line x1=\"40\" y1=\"130\" x2=\"187\" y2=\"130\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"40\" y1=\"130\" x2=\"40\" y2=\"20\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"40\" y1=\"20\" x2=\"187\" y2=\"130\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"40\" y1=\"130\" x2=\"93\" y2=\"60\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><path d=\"M 40 118 L 52 118 L 52 130\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\"/><path d=\"M 89 66 L 94 70 L 99 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"0.9\"/><circle cx=\"93\" cy=\"60\" r=\"2.2\" fill=\"currentColor\"/><text x=\"26\" y=\"144\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"28\" y=\"16\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"191\" y=\"144\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"97\" y=\"55\" font-size=\"11\" fill=\"currentColor\">P</text></svg>","垂线段最短；高=两直角边积/斜边"],["以点B(4,0)为圆心、3为半径作⊙B，则⊙B上的点到原点O的距离最大值为","3","7","4","1",1,"OB=4，圆上点到O的最大距离=OB+r=4+3=7（点在OB延长线与圆的交点处）","<svg viewBox=\"0 0 240 140\" width=\"100%\" style=\"max-width:280px;display:block;margin:6px auto\"><line x1=\"15\" y1=\"100\" x2=\"230\" y2=\"100\" stroke=\"currentColor\" stroke-width=\"1.2\"/><line x1=\"15\" y1=\"100\" x2=\"15\" y2=\"15\" stroke=\"currentColor\" stroke-width=\"1.2\"/><circle cx=\"80\" cy=\"100\" r=\"45\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><circle cx=\"80\" cy=\"100\" r=\"2.5\" fill=\"currentColor\"/><circle cx=\"15\" cy=\"100\" r=\"2.5\" fill=\"currentColor\"/><line x1=\"15\" y1=\"100\" x2=\"125\" y2=\"100\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><text x=\"8\" y=\"116\" font-size=\"11\" fill=\"currentColor\">O</text><text x=\"80\" y=\"116\" font-size=\"11\" fill=\"currentColor\">B</text></svg>","最大距离=圆心距+半径"]],"t7_3":[["等腰三角形的两边长分别为4和9，则该三角形的周长为","22","17","22或17","26",0,"分类：①腰4底9：4+4=8<9，不满足三边关系，舍去；②腰9底4：9+9+4=22","","两种腰的情况都要检验三边关系"],["若等腰三角形的一个内角为70°，则其顶角的度数为","70°或40°","70°","40°","55°",0,"分类：①70°是顶角，成立；②70°是底角，顶角=180°-70°×2=40°。两者都合法","","给出的角可能是顶角也可能是底角"],["若关于x的方程|x-2|=a有两个不相等的实数解，则a的取值范围是","a>0","a≥0","a≠0","0<a<2",0,"分类：a>0时x-2=±a有两解；a=0时仅x=2一解；a<0时无解。故a>0","","绝对值方程按a的正负分类"]],"t8_1":[["同时抛掷两枚质地均匀的硬币，恰好一枚正面向上的概率为","1/2","1/4","1/3","3/4",0,"列表：（正,正）（正,反）（反,正）（反,反）共4种等可能，恰一枚正面的有2种，概率=2/4=1/2","","两枚硬币要区分顺序，共4种等可能"],["袋中装有2个红球、1个白球，摸出一球记下颜色后放回，再摸一球，则两次都摸到红球的概率为","4/9","1/3","2/9","1/2",0,"放回则每次摸到红球概率均为2/3，两次独立：P=(2/3)×(2/3)=4/9","","放回⇒两次相互独立，概率相乘"],["从1,2,3,4中任取两个不同数字组成两位数，则这个两位数是偶数的概率为","1/2","1/4","1/3","5/12",0,"共有4×3=12个两位数（十位个位不同）。偶数：个位取2有3个，个位取4有3个，共6个。P=6/12=1/2","","先算总数12，再按个位数字分类数偶数"]],"t8_2":[["五个数据1,2,3,4,a的平均数为3，则a的值为","5","3","4","7",0,"1+2+3+4+a=3×5=15→a=15-10=5","","平均数×个数=总和"],["甲、乙两组数据的平均数相同，方差分别为S²甲=0.6，S²乙=0.4，则","乙组数据更稳定","甲组数据更稳定","两组一样稳定","无法比较",0,"方差越小，波动越小，成绩越稳定。S²乙=0.4<0.6=S²甲，故乙更稳定","","方差小⇔波动小⇔更稳定"],["某小组5名同学身高分别为155,158,160,162,165（单位：cm），去掉一个最高值和一个最低值后，剩余数据的平均身高为","160cm","158cm","161cm","159cm",0,"(158+160+162)÷3=480÷3=160","","去掉最高最低后按3个数求平均"]],"t8_3":[["某同学平时成绩80分（占20%）、期中90分（占30%）、期末85分（占50%），则综合成绩为","85.5分","85分","86分","84.5分",0,"加权平均：80×0.2+90×0.3+85×0.5=16+27+42.5=85.5","","加权平均=各项×权重再求和"],["掷两枚骰子，若点数和为7则甲胜，点数和为8则乙胜，此游戏","不公平，对甲有利","不公平，对乙有利","公平","无法判断",0,"和为7有(1,6)(2,5)(3,4)(4,3)(5,2)(6,1)共6种，P=6/36；和为8有(2,6)(3,5)(4,4)(5,3)(6,2)共5种，P=5/36。6/36>5/36，甲获胜概率大，不公平","","分别枚举两种和的种数再比较"],["抛一枚图钉500次，针尖朝上300次，则估计针尖朝上的概率约为","0.6","0.5","0.3","0.06",0,"大量重复试验中频率稳定于概率：300/500=0.6","","频率≈概率（试验次数足够多时）"]],"t9_1":[["抛物线y=x²-2x-3与直线y=x-1的交点个数为","2","1","0","3",0,"联立：x²-2x-3=x-1→x²-3x-2=0，Δ=9+8=17>0，方程有两个不同实根，故有2个交点","","联立后看判别式符号"],["将抛物线y=x²-4x+3向左平移2个单位，所得抛物线的解析式为","y=x²-1","y=x²+1","y=x²-5","y=x²-2x",0,"y=x²-4x+3=(x-2)²-1。向左平移2个单位：以x+2代替x，得y=(x+2-2)²-1=x²-1","","先配方，左移用x+2替换x"],["若二次函数y=x²+bx+3的对称轴为直线x=1，则b的值为","-2","2","1","-1",0,"对称轴x=-b/2=1→b=-2","","对称轴公式x=-b/2a"]],"t9_2":[["AB是⊙O的直径，点C在圆上，∠CAB=35°，则∠ABC的度数为","55°","35°","70°","45°",0,"AB是直径⇒∠ACB=90°（直径所对圆周角是直角）。∠ABC=180°-90°-35°=55°","<svg viewBox=\"0 0 200 160\" width=\"100%\" style=\"max-width:240px;display:block;margin:6px auto\"><circle cx=\"110\" cy=\"85\" r=\"60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"50\" y1=\"85\" x2=\"170\" y2=\"85\" stroke=\"currentColor\" stroke-width=\"1.4\"/><line x1=\"50\" y1=\"85\" x2=\"131\" y2=\"29\" stroke=\"currentColor\" stroke-width=\"1.2\"/><line x1=\"131\" y1=\"29\" x2=\"170\" y2=\"85\" stroke=\"currentColor\" stroke-width=\"1.2\"/><path d=\"M 124 34 L 129 40 L 136 36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"0.9\"/><circle cx=\"110\" cy=\"85\" r=\"2\" fill=\"currentColor\"/><text x=\"38\" y=\"80\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"174\" y=\"80\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"134\" y=\"22\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"100\" y=\"102\" font-size=\"11\" fill=\"currentColor\">O</text></svg>","直径所对圆周角=90°"],["△ABC内接于⊙O，AB是直径，∠BAC=30°，BC=4，则⊙O的半径为","4","2","8","4√3",0,"AB是直径⇒∠ACB=90°。sinA=BC/AB→AB=4/sin30°=4/(1/2)=8，半径=8/2=4","","直角三角形中用正弦解斜边，半径=直径一半"],["在△ABC中，D在AB上，DE∥BC交AC于E，AD=2，DB=1，若S△ADE=4，则S△ABC=","8","6","9","12",2,"DE∥BC→△ADE∽△ABC，AD/AB=2/3，面积比=(2/3)²=4/9。S△ABC=4÷(4/9)=9","","相似面积比=对应边比的平方"]],"t9_3":[["若抛物线y=x²-4x+3与直线y=x+b有且只有一个公共点，则b的值为","-13/4","13/4","-4","4",0,"联立：x²-4x+3=x+b→x²-5x+(3-b)=0。只有一个公共点⇔Δ=0：25-4(3-b)=0→13+4b=0→b=-13/4","","相切⇔联立方程Δ=0"],["抛物线y=x²-2x-3与x轴交于A、B两点，P为其对称轴上一动点，则PA+PB的最小值为","4","3","2","2√2",0,"A(-1,0)、B(3,0)关于对称轴x=1对称，PA+PB≥AB=4，当P为AB与对称轴的交点(1,0)时取等，最小值4","<svg viewBox=\"0 0 260 200\" width=\"100%\" style=\"max-width:280px;display:block;margin:6px auto\"><line x1=\"20\" y1=\"80\" x2=\"240\" y2=\"80\" stroke=\"currentColor\" stroke-width=\"1.2\"/><line x1=\"70\" y1=\"10\" x2=\"70\" y2=\"180\" stroke=\"currentColor\" stroke-width=\"1.2\"/><polyline points=\"34,3 50,80 60,115 70,140 80,155 90,160 100,155 110,140 120,115 130,80 142,25\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/><line x1=\"90\" y1=\"20\" x2=\"90\" y2=\"185\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><circle cx=\"50\" cy=\"80\" r=\"2.6\" fill=\"currentColor\"/><circle cx=\"130\" cy=\"80\" r=\"2.6\" fill=\"currentColor\"/><circle cx=\"90\" cy=\"80\" r=\"2.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><text x=\"40\" y=\"96\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"134\" y=\"96\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"94\" y=\"96\" font-size=\"11\" fill=\"currentColor\">P</text></svg>","A、B关于对称轴对称⇒PA+PB≥AB"],["抛物线y=-x²+2x+3与x轴交于A、B两点（A在B左侧），顶点为C，则△ABC的面积为","8","4","16","6",0,"令y=0：x²-2x-3=0→(x-1)²=4→x=-1,3，故A(-1,0)、B(3,0)，AB=4。顶点C(1,4)，高=4。S=(1/2)×4×4=8","<svg viewBox=\"0 0 220 180\" width=\"100%\" style=\"max-width:260px;display:block;margin:6px auto\"><line x1=\"15\" y1=\"110\" x2=\"200\" y2=\"110\" stroke=\"currentColor\" stroke-width=\"1.2\"/><line x1=\"50\" y1=\"10\" x2=\"50\" y2=\"160\" stroke=\"currentColor\" stroke-width=\"1.2\"/><polyline points=\"23,150 32,110 41,70 50,56 59,43 68,38 77,43 86,56 95,79 104,110 113,150\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"/><line x1=\"68\" y1=\"38\" x2=\"68\" y2=\"110\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"4,3\"/><circle cx=\"32\" cy=\"110\" r=\"2.6\" fill=\"currentColor\"/><circle cx=\"104\" cy=\"110\" r=\"2.6\" fill=\"currentColor\"/><circle cx=\"68\" cy=\"38\" r=\"2.6\" fill=\"currentColor\"/><text x=\"22\" y=\"126\" font-size=\"11\" fill=\"currentColor\">A</text><text x=\"108\" y=\"126\" font-size=\"11\" fill=\"currentColor\">B</text><text x=\"72\" y=\"32\" font-size=\"11\" fill=\"currentColor\">C</text><text x=\"196\" y=\"124\" font-size=\"11\" fill=\"currentColor\">x</text></svg>","顶点纵坐标的绝对值就是三角形的高"]]};
+
+// ====== 通用工具 ======
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function uidOf(s){var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0}return 'u'+(h>>>0).toString(36)}
+function shuffleArr(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function yesterdayStr(){var d=new Date(Date.now()-86400000);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function togglePwd(){var i=document.getElementById('lpin');if(!i)return;i.type=i.type==='password'?'text':'password'}
+// 键盘可达性：Enter/Space 触发 role=button 元素
+document.addEventListener('keydown',function(e){
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.getAttribute&&e.target.getAttribute('role')==='button'){e.preventDefault();e.target.click()}
+});
+
+// 每塔实际楼层数（从题库推导，进度判定动态化）
+var TOWER_FLOORS={};
+for(var _k in Q){var _p=_k.split('_');var _t=_p[0];var _f=+_p[1]+1;if(!TOWER_FLOORS[_t]||_f>TOWER_FLOORS[_t])TOWER_FLOORS[_t]=_f}
+var TOTAL_FLOORS=0;for(var _t2 in TOWER_FLOORS)TOTAL_FLOORS+=TOWER_FLOORS[_t2];
+
+// ====== 存储适配层（沙箱/隐私模式兼容）======
+// 预览面板、第三方嵌入常以 sandbox="allow-scripts"（缺 allow-same-origin）加载页面。
+// 此时连"读取 localStorage 属性"这一步都会抛 SecurityError（不是读写失败），
+// 任何直接引用都会让注册、存档整条链路崩在第一步。
+// 策略：启动时探测一次；不可用则退化为内存表——功能完整，仅关闭页面后进度不保留。
+var Store=(function(){
+  var mem={},ok=false;
+  try{
+    var probe=P+'__probe__';
+    window.localStorage.setItem(probe,'1');
+    window.localStorage.removeItem(probe);
+    ok=true;
+  }catch(e){ok=false}
+  function ls(){try{return window.localStorage}catch(e){ok=false;return null}}
+  return {
+    available:function(){return ok},
+    get:function(k){
+      if(ok){var L=ls();if(L){try{return L.getItem(k)}catch(e){ok=false}}}
+      return Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:null;
+    },
+    set:function(k,v){
+      v=String(v);
+      if(ok){var L=ls();if(L){try{L.setItem(k,v);return true}catch(e){ok=false}}}
+      mem[k]=v;return false;
+    },
+    remove:function(k){
+      if(ok){var L=ls();if(L){try{L.removeItem(k)}catch(e){ok=false}}}
+      delete mem[k];
+    }
+  };
+})();
+
+// ====== 存档 =====
+function getUserData(nickname){try{var d=Store.get(P+'user_'+nickname);return d?JSON.parse(d):null}catch(e){return null}}
+function saveUserData(){if(!user||!user.nickname)return;Store.set(P+'user_'+user.nickname,JSON.stringify(user))}
+function hasAnyProfile(){
+  try{
+    var L=window.localStorage;
+    if(!L)return false;
+    for(var i=0;i<L.length;i++){var k=L.key(i);if(k&&k.indexOf(P+'user_')===0)return true}
+  }catch(e){}
+  return false;
+}
+function saveProgress(){if(!user||!user.nickname)return;Store.set(P+'progress_'+user.nickname,JSON.stringify(progress))}
+function loadProgressFor(nickname){
+  try{var p=Store.get(P+'progress_'+nickname);if(p){progress=JSON.parse(p);
+    progress.items=progress.items||{extraHp:0,hint:0};
+    progress.wrongQuestions=progress.wrongQuestions||[];
+    progress.masteredKps=progress.masteredKps||{};
+    progress.streak=progress.streak||{count:0,lastDate:''};
+    progress.towers=progress.towers||{};
+    return true}}catch(e){}
+  progress={towers:{},totalStars:0,streak:{count:0,lastDate:''},rank:0,xp:0,items:{extraHp:0,hint:0},dailyCompleted:'',wrongQuestions:[],masteredKps:{}};
+  return false;
+}
+
+// ====== 登录（账户体系修复：冷却锁、无假保存密码、无明文users注册表） ======
+var loginFails = 0, loginTarget = '', regPrefill = '';
+function lockoutKey(n){return P+'lockout_'+n}
+function lockoutRemaining(n){var lu=+Store.get(lockoutKey(n))||0;return lu>Date.now()?lu-Date.now():0}
+
+const LH = (function(){ return JSON.parse(document.getElementById('lhdata').textContent); })();
+
+(function(){
+  var lg = document.getElementById('lhg');
+  LH.forEach(function(h,i){
+    var c=document.createElement('div');
+    c.className='lhc'+(i===0?' sel':'');
+    c.dataset.id=h.id;
+    c.style.setProperty('--clr',h.clr);
+    c.innerHTML='<div class="lhf"><div class="lhi"><img src="'+h.img+'" alt="'+esc(h.name)+'" loading="lazy"></div></div><div class="lhn">'+esc(h.name)+'</div><div class="lht">'+esc(h.title)+'</div>';
+    c.addEventListener('click',function(){selHero=h.id;document.querySelectorAll('.lhc').forEach(function(x){x.classList.remove('sel')});c.classList.add('sel')});
+    lg.appendChild(c);
+  });
+
+  document.getElementById('lpin').addEventListener('input',function(){
+    var btn=document.getElementById('lbtn');var pv=this.value;
+    if(pv.length===6&&/^\d{6}$/.test(pv)){btn.disabled=false;btn.classList.remove('disabled');btn.setAttribute('aria-disabled','false')}
+    else{btn.disabled=false;btn.classList.add('disabled');btn.setAttribute('aria-disabled','true')}
+    var errEl=document.getElementById('lerr');
+    if(errEl.classList.contains('show')){errEl.classList.remove('show')}
+    errEl.classList.remove('info');
+    this.classList.remove('input-error');
+  });
+  // 只用视觉禁用态，不设 disabled 属性：disabled 的 button 不会派发 click，
+  // 用户点上去毫无反馈（自动填充密码时 input 事件不触发，按钮会永久卡在灰态）
+  document.getElementById('lbtn').disabled=false;
+  document.getElementById('lbtn').classList.add('disabled');
+  document.getElementById('lbtn').setAttribute('aria-disabled','true');
+
+  document.getElementById('lbtn').addEventListener('click',function(){
+    var n=document.getElementById('lnick').value.trim();
+    var pv=document.getElementById('lpin').value;
+    var errEl=document.getElementById('lerr');
+    var pinEl=document.getElementById('lpin');
+    function fail(msg){pinEl.value='';errEl.textContent=msg;errEl.classList.add('show');errEl.classList.remove('info');pinEl.classList.add('input-error');setTimeout(function(){pinEl.classList.remove('input-error')},400)}
+    if(!n){errEl.textContent='请输入你的冒险者名號';errEl.classList.add('show');document.getElementById('lnick').classList.add('input-error');setTimeout(function(){document.getElementById('lnick').classList.remove('input-error')},400);return}
+    if(!pv||pv.length!==6||!/^\d{6}$/.test(pv)){fail('密码需为6位数字');return}
+    if(loginTarget&&loginTarget!==n){loginFails=0}
+    loginTarget=n;
+    // 冷却锁检查（替代原"永久锁定"）
+    var remain=lockoutRemaining(n);
+    if(remain>0){errEl.textContent='尝试次数过多，请 '+Math.ceil(remain/60000)+' 分钟后再试';errEl.classList.add('show');return}
+    var existing=getUserData(n);
+    if(existing){
+      if(existing.pin!==pv){
+        loginFails++;
+        if(loginFails>=CFG.LOCK_FAILS){
+          Store.set(lockoutKey(n),String(Date.now()+CFG.LOCK_MS));
+          loginFails=0;loginTarget='';
+          errEl.textContent='密码错误次数过多，账户已临时锁定（'+CFG.LOCK_MS/60000+'分钟后自动解锁）';
+          errEl.classList.add('show');
+          pinEl.value='';
+          return;
+        }
+        fail('密码错误，请重试（剩余次数：'+(CFG.LOCK_FAILS-loginFails)+'）');
+        return;
+      }
+      loginFails=0;loginTarget='';
+      Store.remove(lockoutKey(n));
+      // 清理历史遗留的永久锁键（老用户解锁）
+      Store.remove(P+'locked_'+n);
+      Store.remove(P+'autologin_'+n);
+      user=existing;
+      loadProgressFor(n);
+    }else{
+      // 未注册名號不允许直接登录：必须先注册，避免输错一个字就生成空档案
+      loginFails=0;loginTarget='';
+      regPrefill=n;
+      errEl.textContent='本机没有「'+n+'」的档案。请先点下方「新用户注册」创建；换设备或清缓存会导致原档案丢失。';
+      errEl.classList.add('show','info');
+      var _gr=document.getElementById('go-register');
+      if(_gr){_gr.classList.add('attn');setTimeout(function(){_gr.classList.remove('attn')},2000)}
+      return;
+    }
+    saveUserData();
+    saveProgress();
+    showCV();
+  });
+})();
+
+function handleForgotPwd(){
+  var errEl=document.getElementById('lerr');
+  errEl.textContent='本产品数据仅保存在本机浏览器，密码无法在线找回。忘记密码时，可在浏览器设置中清除本站数据后重新注册（原进度会一并清除）。请妥善记住密码哦！';
+  errEl.classList.add('show');
+  errEl.style.color='#c8873c';
+  setTimeout(function(){errEl.style.color='';errEl.classList.remove('show')},6000);
+}
+function showRegister(skipFocus){
+  loginFails=0;loginTarget='';
+  var ni=document.getElementById('reg-nick'),pi=document.getElementById('reg-pin'),p2=document.getElementById('reg-pin2');
+  ni.value=regPrefill||'';regPrefill='';
+  pi.value='';if(p2)p2.value='';
+  ni.classList.remove('input-error');pi.classList.remove('input-error');if(p2)p2.classList.remove('input-error');
+  document.getElementById('reg-nick-err').textContent='';
+  document.getElementById('reg-pin-err').textContent='';
+  var p2e=document.getElementById('reg-pin2-err');if(p2e)p2e.textContent='';
+  _regBusy=false;
+  var sb=document.getElementById('reg-submit');
+  sb.disabled=false;sb.classList.remove('disabled');sb.textContent='注 册 远 征';
+  document.getElementById('reg-modal').classList.add('active');
+  if(skipFocus!==true)setTimeout(function(){try{ni.focus({preventScroll:true})}catch(e){}},60);
+}
+function closeRegister(){
+  var m=document.getElementById('reg-modal');
+  if(m)m.classList.remove('active');
+  _regBusy=false;
+}
+(function bindRegisterUX(){
+  ['reg-nick','reg-pin','reg-pin2'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el)return;
+    el.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.keyCode===13){e.preventDefault();doRegister()}
+    });
+  });
+  var m=document.getElementById('reg-modal');
+  if(m)m.addEventListener('click',function(e){if(e.target===m)closeRegister()});
+  document.addEventListener('keydown',function(e){
+    if((e.key==='Escape'||e.keyCode===27)&&m&&m.classList.contains('active'))closeRegister();
+  });
+})();
+var _regBusy=false;
+function regFail(el,msgEl,msg){
+  if(!el||!msgEl)return;
+  msgEl.textContent=msg;
+  el.classList.add('input-error');
+  try{el.focus({preventScroll:true})}catch(e){try{el.focus()}catch(e2){}}
+  setTimeout(function(){el.classList.remove('input-error')},700);
+}
+function doRegister(){
+  if(_regBusy)return;
+  var ni=document.getElementById('reg-nick'),pi=document.getElementById('reg-pin'),p2=document.getElementById('reg-pin2');
+  var ne=document.getElementById('reg-nick-err'),pe=document.getElementById('reg-pin-err'),p2e=document.getElementById('reg-pin2-err');
+  var sb=document.getElementById('reg-submit');
+  if(!ni||!pi||!sb)return;
+  var n=ni.value.trim(),pv=pi.value;
+  ne.textContent='';pe.textContent='';
+  ni.classList.remove('input-error');pi.classList.remove('input-error');
+  if(p2e)p2e.textContent='';if(p2)p2.classList.remove('input-error');
+
+  if(!n){regFail(ni,ne,'请输入冒险者名號');return}
+  if(n.length>8){regFail(ni,ne,'名號最多 8 个字');return}
+  if(!pv||pv.length!==6||!/^\d{6}$/.test(pv)){regFail(pi,pe,'密码需为 6 位数字');return}
+  var p2v=p2?p2.value:'';
+  if(!p2v||p2v.length!==6||!/^\d{6}$/.test(p2v)){regFail(p2,p2e,'请再次输入 6 位数字密码');return}
+  if(p2v!==pv){regFail(p2,p2e,'两次输入的密码不一致，请重新输入');return}
+
+  var existing=null;
+  try{existing=getUserData(n)}catch(e){}
+  if(existing){regFail(ni,ne,'该名號已存在，请直接登录或换一个名號');return}
+
+  _regBusy=true;
+  var oldTxt=sb.textContent;
+  sb.textContent='注 册 中…';sb.classList.add('disabled');
+  try{
+    loginFails=0;loginTarget='';
+    loadProgressFor(n);
+    user={nickname:n,avatar:selHero,pin:pv};
+    saveUserData();
+    saveProgress();
+    document.getElementById('lnick').value=n;
+    ni.value='';pi.value='';if(p2)p2.value='';
+    closeRegister();
+    showCV();
+  }catch(err){
+    var _m=(err&&err.message)||'';
+    var _tip=/storage|sandbox|SecurityError|quota/i.test(_m)
+      ? '当前环境限制了本地存储，请在新窗口打开本页后再注册'
+      : '系统繁忙，请稍后重试';
+    ne.textContent='注册失败：'+_tip;
+    try{console.error('[register]',err)}catch(e2){}
+    _regBusy=false;sb.textContent=oldTxt;sb.classList.remove('disabled');
+    return;
+  }
+  setTimeout(function(){sb.textContent=oldTxt;sb.classList.remove('disabled');_regBusy=false},420);
+}
+
+// ====== 视图切换 =====
+function setScene(s){document.body.setAttribute('data-scene',s)}
+function showLV(){
+  setScene('learn');
+  document.getElementById('lv').classList.add('active');
+  document.getElementById('cv').classList.remove('active');
+  document.getElementById('lnick').value='';document.getElementById('lpin').value='';
+  document.getElementById('lhg').style.display='';
+  document.getElementById('lnick').style.display='';
+  document.getElementById('lbtn').textContent='开 启 试 炼';
+  document.getElementById('lock-back').style.display='none';
+  if(window.history&&window.history.replaceState){try{history.replaceState({page:'login'},'','#login')}catch(e){}}
+  var lfl=document.querySelector('.lfl');if(lfl)lfl.style.display='';
+}
+function showLockView(){
+  setScene('learn');
+  loginFails=0;loginTarget='';
+  if(user){document.getElementById('lnick').value=user.nickname;loginTarget=user.nickname}
+  document.getElementById('lv').classList.add('active');
+  document.getElementById('cv').classList.remove('active');
+  document.getElementById('lhg').style.display='none';
+  document.getElementById('lnick').style.display='none';
+  document.getElementById('lpin').value='';
+  document.getElementById('lbtn').textContent='解 锁';
+  document.getElementById('lock-back').style.display='inline-block';
+  var lfl=document.querySelector('.lfl');if(lfl)lfl.style.display='none';
+}
+function showLoginView(){
+  loginFails=0;loginTarget='';
+  document.getElementById('lhg').style.display='';
+  document.getElementById('lnick').style.display='';
+  document.getElementById('lnick').value='';document.getElementById('lpin').value='';
+  document.getElementById('lbtn').textContent='开 启 试 炼';
+  if(window.history&&window.history.replaceState){try{history.replaceState({page:'login'},'','#login')}catch(e){}}
+  document.getElementById('lock-back').style.display='none';
+  showLV();
+}
+function showCV(){
+  if(!user)return;
+  setScene('learn');
+  document.getElementById('lv').classList.remove('active');
+  document.getElementById('cv').classList.add('active');
+  // 语义化：replaceState 不堆历史（浏览器返回=正常离开页面，不再强制登出）
+  if(window.history&&window.history.replaceState){try{history.replaceState({page:'game'},'','#'+encodeURIComponent(user.nickname))}catch(e){}}
+  document.getElementById('action-toolbar').style.display='flex';
+  var h=null;for(var i=0;i<LH.length;i++){if(LH[i].id===user.avatar){h=LH[i];break}}if(!h)h=LH[0];
+  document.getElementById('hn').textContent=user.nickname;
+  document.getElementById('ha').innerHTML='<img src="'+h.img+'" alt="'+esc(h.name)+'">';
+  updateStats();
+  renderTowers();
+  switchPageTrial('home');
+}
+
+// ====== 排位 =====
+var RANKS=[{name:'⚒ 见习旅人',xp:0,clr:'#8c6c4a'},{name:'⚒ 进阶旅人',xp:50,clr:'#a08060'},{name:'⚜ 星轨行者',xp:120,clr:'#8fa3b8'},{name:'⚜ 星辉行者',xp:250,clr:'#a8c0d0'},{name:'👑 星域导师',xp:450,clr:'#c89a3c'},{name:'👑 传说导师',xp:800,clr:'#d4a843'},{name:'⭐ 星辰守望',xp:1500,clr:'#d078a0'},{name:'🌟 星海领航',xp:3000,clr:'#cc5060'}];
+function getRank(){
+  var xp=(progress.xp||0);var r=RANKS[0];
+  for(var i=RANKS.length-1;i>=0;i--){if(xp>=RANKS[i].xp){r=RANKS[i];break}}
+  var nxt=RANKS[RANKS.indexOf(r)+1];
+  return {name:r.name,clr:r.clr,xp:xp,pct:nxt?Math.round((xp-r.xp)/(nxt.xp-r.xp)*100):100,nextName:nxt?nxt.name:''};
+}
+
+// ====== 统计（单一实现，全部真实计算） =====
+function updateStats(){
+  var done=0,cleared=0;
+  TOWERS.forEach(function(t){
+    var td=progress.towers[t.id]||{};
+    var fl=Math.min(td.floors||0,TOWER_FLOORS[t.id]||4);
+    cleared+=fl;
+    if(fl>=(TOWER_FLOORS[t.id]||4))done++;
+  });
+  document.getElementById('sc').textContent=done+'/'+TOWERS.length;
+  document.getElementById('sm').textContent=Math.round(cleared/TOTAL_FLOORS*100)+'%';
+  document.getElementById('sss').textContent=(progress.streak?progress.streak.count:0)+'天';
+  document.getElementById('sr').textContent=progress.totalStars||0;
+  var rank=getRank();
+  document.getElementById('st').textContent=rank.name;
+  document.getElementById('sx').textContent=(progress.xp||0)+' XP';
+  document.getElementById('sb').style.width=rank.pct+'%';
+  var rk=document.getElementById('rank-badge');
+  rk.textContent=rank.name;rk.style.color=rank.clr;rk.className='rank';
+}
+
+// ====== 塔地图（花瓣式卡片网格） =====
+function renderTowers(){
+  var tl=document.getElementById('tl');
+  tl.innerHTML=TOWERS.map(function(t){
+    var td=progress.towers[t.id]||{};
+    var fl=td.floors||0;var TF=TOWER_FLOORS[t.id]||4;
+    var pct=Math.round(fl/TF*100);
+    var chips=(t.kps||[]).map(function(k){return '<span class="tchip">'+esc(k)+'</span>'}).join('');
+    return '<div class="tc" data-tid="'+t.id+'" style="--clr:'+t.clr+'" onclick="startTrial(\''+t.id+'\')">'+
+      '<div class="tc-visual">'+t.icon+'</div>'+
+      '<div class="tcb"><div class="tcn">'+esc(t.name)+'</div><div class="tcchips">'+chips+'</div>'+
+      '<div class="tcbar"><i style="width:'+pct+'%"></i></div></div>'+
+      '<div class="tcr"><div class="tcp">'+fl+'/'+TF+'</div><div class="tcl">层</div></div></div>';
+  }).join('');
+}
+
+// ====== 战斗 =====
+let battleState={active:false,towerId:'',floor:1,hp:4,maxHp:4,combo:0,maxCombo:0,correct:0,total:0,questions:[],qIdx:0,timeLeft:30,answers:[],results:[],hintUsed:false,timerInterval:null};
+
+function startTrial(tid){
+  // 计时器收口：开新战局前强制清理任何遗留计时器（防双倍速竞态）
+  stopBattleTimer();
+  var qs=generateQuestions(tid);
+  if(!qs.length)return;
+  qs=qs.map(shuffleQuestion);
+  var hp=CFG.HP||4;
+  // 道具接入：额外生命开局自动生效
+  var extraNote='';
+  progress.items=progress.items||{extraHp:0,hint:0};
+  if((progress.items.extraHp||0)>0){
+    progress.items.extraHp--;hp+=1;extraNote='💚 额外生命生效：本局生命 +1';
+    saveProgress();
+  }
+  battleState={active:true,towerId:tid,floor:1,hp:hp,maxHp:hp,combo:0,maxCombo:0,correct:0,total:0,questions:qs,qIdx:0,answers:[],results:[],hintUsed:false,timerInterval:null,extraNote:extraNote};
+  setScene('battle');
+  document.getElementById('ph').style.display='none';
+  document.getElementById('pr').style.display='none';
+  document.getElementById('pq').style.display='none';
+  document.getElementById('pb').style.display='flex';
+  updateBackBtn();
+  window.scrollTo(0,0);
+  renderBattle();
+  startBattleTimer();
+}
+
+function shuffleQuestion(q){
+  var opts=q.options.slice();
+  var correctText=opts[q.answer];
+  shuffleArr(opts);
+  var newAnswer=opts.indexOf(correctText);
+  return {question:q.question,options:opts,answer:newAnswer>=0?newAnswer:q.answer,explanation:q.explanation,fig:q.fig,hint:q.hint,level:q.level,floor:q.floor,kp:q.kp};
+}
+
+// 每层限时：基础30s → 压轴60s
+function timeForFloor(f){return CFG.TIME_BY_FLOOR[Math.max(0,Math.min(3,f-1))]}
+
+function startBattleTimer(){
+  stopBattleTimer();
+  var s=battleState;
+  var q=s.questions[s.qIdx];
+  s.timeLeft=timeForFloor(q?q.floor:1);
+  updateTimerDisplay();
+  s.timerInterval=setInterval(function(){
+    if(!battleState.active)return; // 离开后不再后台判错
+    battleState.timeLeft--;
+    updateTimerDisplay();
+    if(battleState.timeLeft<=0){answerQ(-1)}
+  },1000);
+}
+function updateTimerDisplay(){var tel=document.getElementById('btimer');if(tel)tel.textContent=Math.max(0,battleState.timeLeft)+'s'}
+function stopBattleTimer(){
+  if(battleState&&battleState.timerInterval){clearInterval(battleState.timerInterval);battleState.timerInterval=null}
+}
+function abandonBattle(){battleState.active=false;stopBattleTimer()}
+
+function generateQuestions(tid){
+  var levels=['基础应用','变形提升','综合突破','压轴冲刺'];
+  var tw=null;TOWERS.forEach(function(t){if(t.id===tid)tw=t});
+  var qs=[];
+  for(var f=0;f<4;f++){
+    var pool=(Q[tid+'_'+f]||[]).slice();
+    if(!pool.length)continue;
+    shuffleArr(pool); // Fisher-Yates（替代原比较器有偏洗牌）
+    var picked=pool.slice(0,2);
+    for(var j=0;j<picked.length;j++){
+      var item=picked[j];
+      qs.push({
+        level:levels[f],floor:f+1,
+        kp:(tw&&tw.kps&&tw.kps[f])||'',
+        question:item[0],options:[item[1],item[2],item[3],item[4]],
+        answer:item[5],explanation:item[6],fig:item[7]||'',hint:item[8]||''
+      });
+    }
+  }
+  return qs;
+}
+
+function renderBattle(){
+  var s=battleState;
+  var q=s.questions[s.qIdx];
+  var hpPct=Math.max(0,s.hp/s.maxHp*100);
+  var hpColor=hpPct>50?'#e0582a':hpPct>25?'#e8964a':'#c05040';
+  var hintCount=(progress.items&&progress.items.hint)||0;
+  var hintBtn='';
+  if(hintCount>0){
+    hintBtn='<button class="bhint" onclick="useHint()">💡 提示卡 ×'+hintCount+'</button>';
+  }
+  document.getElementById('bcnt').innerHTML=
+    '<div class="bb"><div class="bt">⚔️ '+esc(q.level)+' · 第'+q.floor+'层'+(q.kp?' · '+esc(q.kp):'')+'</div>'+
+    '<div class="bh"><div class="bhb"><div class="bhf" id="hpfill" style="width:'+hpPct+'%;background:linear-gradient(90deg,'+hpColor+','+(hpPct>50?'#e87850':'#d06050')+')"></div></div><span class="bhp" style="color:'+hpColor+'">❤️ '+s.hp+'/'+s.maxHp+'</span></div>'+
+    '<div class="bc"><span class="btim">⏱ <span id="btimer">'+s.timeLeft+'s</span></span> <span>连击 <span class="bcc" id="combo">'+s.combo+'x</span></span> <span>'+(s.qIdx+1)+'/'+s.questions.length+'</span></div>'+
+    (s.extraNote?'<div class="bnote">'+esc(s.extraNote)+'</div>':'')+
+    '<div class="bd">'+esc(q.question)+'</div>'+
+    (q.fig?'<div class="bfig" role="img" aria-label="题目配图">'+q.fig+'</div>':'')+
+    '<div class="bo">'+q.options.map(function(o,i){return '<button class="boi" onclick="answerQ('+i+')">'+esc(o)+'</button>'}).join('')+'</div>'+
+    '<div class="qe" id="exp"></div><div class="bfoot">'+hintBtn+'<button class="qn" id="nb" style="display:none" onclick="nextQ()">下一题 →</button></div></div>';
+}
+
+// 道具接入：提示卡展示知识点提示（不剧透答案）
+function useHint(){
+  var s=battleState;
+  if(!s.active)return;
+  if(s.hintUsed)return;
+  if(!(progress.items&&progress.items.hint>0))return;
+  var q=s.questions[s.qIdx];
+  progress.items.hint--;saveProgress();
+  s.hintUsed=true;
+  var exp=document.getElementById('exp');
+  if(exp){exp.textContent='💡 提示：'+(q.hint||'回顾本题对应知识点的核心方法');exp.classList.add('show')}
+  var hb=document.querySelector('.bhint');if(hb)hb.remove();
+}
+
+function revealNextButton(){
+  var b=document.getElementById('nb');
+  if(!b||b.style.display==='none')return;
+  var nav=document.querySelector('.bn');
+  var limit=window.innerHeight;
+  if(nav&&getComputedStyle(nav).display!=='none')limit=nav.getBoundingClientRect().top;
+  var r=b.getBoundingClientRect();
+  var need=r.bottom-(limit-10);
+  if(need>0)window.scrollBy(0,need);
+}
+
+function answerQ(idx){
+  if(!battleState.active)return;
+  if(battleState.answers[battleState.qIdx]!==undefined)return;
+  if(battleState.qIdx>=battleState.questions.length)return;
+  var q=battleState.questions[battleState.qIdx];
+  var correct=idx===q.answer;
+  battleState.answers[battleState.qIdx]=idx;
+  battleState.results[battleState.qIdx]=correct;
+  battleState.total++;
+  var comboMult='';
+  if(correct){
+    battleState.correct++;
+    battleState.combo++;
+    if(battleState.combo>battleState.maxCombo)battleState.maxCombo=battleState.combo;
+    comboMult=battleState.combo>=5?'⚡ x2':battleState.combo>=3?'🔥 x1.5':''; // emoji修复
+  }else{
+    battleState.combo=0;battleState.hp--;
+    addWrongQuestion(q,idx);
+  }
+  updateBattleUI(idx,correct,comboMult);
+  var b=document.getElementById('nb');
+  if(b){
+    b.textContent=(battleState.qIdx>=battleState.questions.length-1||battleState.hp<=0)?'查看结果':'下一题 →';
+    b.style.display='inline-block';
+    setTimeout(revealNextButton,30);
+  }
+}
+
+// 错题写入（带uid去重+容量上限）
+function addWrongQuestion(q,idx){
+  progress.wrongQuestions=progress.wrongQuestions||[];
+  var uid=uidOf(q.question);
+  for(var i=0;i<progress.wrongQuestions.length;i++){
+    var w=progress.wrongQuestions[i];
+    if((w.uid&&w.uid===uid)||(!w.uid&&w.q===q.question))return; // 去重
+  }
+  progress.wrongQuestions.push({
+    uid:uid,tower:battleState.towerId,
+    kp:q.kp||'',q:q.question,options:q.options,answer:q.answer,
+    a:idx===-1?'超时未答':q.options[idx],c2:q.options[q.answer],
+    e:q.explanation||'',time:Date.now()
+  });
+  if(progress.wrongQuestions.length>CFG.WRONG_MAX)progress.wrongQuestions=progress.wrongQuestions.slice(-CFG.WRONG_MAX);
+  saveProgress();
+}
+
+function updateBattleUI(idx,correct,comboMult){
+  var s=battleState;
+  var q=s.questions[s.qIdx];
+  var opts=document.querySelectorAll('.boi');
+  for(var i=0;i<opts.length;i++){
+    opts[i].classList.add('dis');
+    if(i===q.answer)opts[i].classList.add('correct');
+    if(i===idx&&!correct)opts[i].classList.add('wrong');
+  }
+  stopBattleTimer();
+  var exp=document.getElementById('exp');
+  if(exp){
+    var msg=(idx===-1?'⏰ 时间到！':correct?'✓ 正确！':'✗ 错误。')+' '+(q.explanation||'');
+    if(correct&&comboMult)msg+=' '+comboMult;
+    exp.textContent=msg;exp.classList.add('show');
+  }
+  var hp=document.getElementById('hpfill');if(hp)hp.style.width=Math.max(0,s.hp/s.maxHp*100)+'%';
+  var cb=document.getElementById('combo');if(cb){cb.textContent=s.combo+'x';cb.style.color=s.combo>=5?'#ffd166':s.combo>=3?'#ff9060':'inherit'}
+}
+
+function nextQ(){
+  if(!battleState.active)return;
+  battleState.qIdx++;
+  if(battleState.qIdx>=battleState.questions.length||battleState.hp<=0){
+    endBattle(battleState.hp>0);
+    return;
+  }
+  battleState.hintUsed=false;
+  renderBattle();
+  window.scrollTo(0,0);
+  startBattleTimer();
+}
+
+function endBattle(won){
+  abandonBattle(); // active=false + 停表
+  setScene('learn');
+  progress.xp=progress.xp||0;
+  progress.items=progress.items||{extraHp:0,hint:0};
+  var s=battleState;
+  // 楼层推进按"该层全部答对"计（诚实推进，答错不推进）
+  var floorsCleared=0;
+  for(var f=1;f<=4;f++){
+    var idxs=[],ok=true;
+    for(var i=0;i<s.questions.length;i++){if(s.questions[i].floor===f)idxs.push(i)}
+    if(!idxs.length)continue;
+    for(var j=0;j<idxs.length;j++){if(s.results[idxs[j]]!==true){ok=false;break}}
+    if(ok)floorsCleared++;
+  }
+  var comboMult=s.maxCombo>=5?2:s.maxCombo>=3?1.5:1;
+  var starsEarned=won?Math.round(3*comboMult):0;
+  var xpEarned=s.correct*10*comboMult+(won?20:0);
+  progress.xp+=xpEarned;
+
+  var td=progress.towers[s.towerId]||{floors:0,stars:0,total:0,correct:0};
+  // 修正：记录具体通过的层，避免"只在第3层全对却显示3/4"的虚高
+  if(!td.floorFlags||td.floorFlags.length!==4){
+    td.floorFlags=[false,false,false,false];
+    var legacy=Math.min(td.floors||0,4);
+    for(var lf=0;lf<legacy;lf++)td.floorFlags[lf]=true;
+  }
+  for(var cf=1;cf<=4;cf++){
+    var anyQ=false,allOk=true;
+    for(var qi=0;qi<s.questions.length;qi++){
+      if(s.questions[qi].floor!==cf)continue;
+      anyQ=true;
+      if(s.results[qi]!==true){allOk=false;break}
+    }
+    if(anyQ&&allOk)td.floorFlags[cf-1]=true;
+  }
+  td.floors=0;for(var ff=0;ff<4;ff++){if(td.floorFlags[ff])td.floors++}
+  td.stars=(td.stars||0)+starsEarned;
+  td.total=(td.total||0)+s.total;
+  td.correct=(td.correct||0)+s.correct;
+  progress.towers[s.towerId]=td;
+  progress.totalStars=0;for(var k in progress.towers){progress.totalStars+=(progress.towers[k].stars||0)}
+
+  // 连击=连续天数（断签清零，仅试炼日计入）
+  progress.streak=progress.streak||{count:0,lastDate:''};
+  var today=todayStr();
+  if(progress.streak.lastDate!==today){
+    if(progress.streak.lastDate===yesterdayStr()){progress.streak.count++}
+    else{progress.streak.count=1}
+    progress.streak.lastDate=today;
+  }
+
+  // 每日奖励：真实按日发放
+  var dailyCheck='';
+  if(progress.dailyCompleted!==today){
+    progress.dailyCompleted=today;
+    progress.xp+=CFG.XP_DAILY||30;
+    dailyCheck='<div class="rbonus daily">🎉 每日试炼奖励 +'+(CFG.XP_DAILY||30)+' XP</div>';
+  }
+
+  // 道具掉落
+  var loot='';
+  if(Math.random()<CFG.DROP_RATE){
+    var items=['extraHp','hint'];
+    var pick=items[Math.floor(Math.random()*items.length)];
+    progress.items[pick]=(progress.items[pick]||0)+1;
+    loot='<div class="rbonus loot">🎁 获得道具：'+(pick==='extraHp'?'💚 额外生命':'💡 提示卡')+' ×1</div>';
+  }
+  saveProgress();
+  updateStats();
+
+  document.getElementById('rcnt').innerHTML=
+    '<div class="rc"><div class="ri">'+(floorsCleared===4?'🏆':(won?'🎯':'💪'))+'</div><div class="rn">'+(floorsCleared===4?'试炼通关！':(won?'挑战完成':'挑战失败'))+'</div><div class="rs">本次通过 '+floorsCleared+'/4 层 · 最高连击 '+s.maxCombo+'x</div>'+
+    '<div class="rss"><div class="rsi"><div class="rsv">'+s.correct+'/'+s.total+'</div><div class="rsl">正确率</div></div><div class="rsi"><div class="rsv">'+s.maxCombo+'x</div><div class="rsl">最高连击</div></div><div class="rsi"><div class="rsv">⭐+'+starsEarned+'</div><div class="rsl">星辉 ×'+comboMult+'</div></div><div class="rsi"><div class="rsv">+'+xpEarned+'</div><div class="rsl">经验值</div></div></div>'+
+    loot+dailyCheck+
+    '<button class="rba" onclick="retryTrial()">🔄 重新挑战</button><button class="rbb" onclick="goHome()">🏰 返回试炼塔</button></div>';
+  document.getElementById('pb').style.display='none';
+  document.getElementById('pr').style.display='block';
+  window.scrollTo(0,0);
+  updateBackBtn();
+}
+
+function retryTrial(){startTrial(battleState.towerId)}
+
+// ====== 战绩页 =====
+function renderStats(){
+  var allT=0,allC=0,allStars=0;
+  for(var tid in progress.towers){
+    var td=progress.towers[tid]||{};
+    allT+=td.total||0;allC+=td.correct||0;allStars+=td.stars||0;
+  }
+  var acc=allT?Math.round(allC/allT*100):0;
+  var completed=0;
+  TOWERS.forEach(function(t){var td=progress.towers[t.id]||{};if((td.floors||0)>=(TOWER_FLOORS[t.id]||4))completed++});
+  var rank=getRank();
+  var pct=Math.min(100,Math.round(completed/TOWERS.length*100));
+  var html='';
+  html+='<div class="rhead" style="border-color:'+rank.clr+'55">';
+  html+='<div style="font-size:2.5rem;margin-bottom:4px">'+rank.name.split(' ')[0]+'</div>';
+  html+='<div style="font-size:1.1rem;font-weight:700;color:'+rank.clr+'">'+esc(rank.name)+'</div>';
+  html+='<div style="width:100%;height:8px;border-radius:4px;background:var(--border);margin:10px 0"><div style="width:'+pct+'%;height:100%;border-radius:4px;background:linear-gradient(90deg,'+rank.clr+',var(--accent));transition:width .6s"></div></div>';
+  html+='<div style="font-size:.75rem;color:var(--t3)">'+completed+'/'+TOWERS.length+' 征服 · '+pct+'%</div></div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 16px">';
+  html+='<div class="rc3"><div class="rv">'+allT+'</div><div class="rl2">总答题</div></div>';
+  html+='<div class="rc3"><div class="rv" style="color:'+(acc>=80?'var(--ok)':acc>=50?'var(--gold)':'var(--err)')+'">'+acc+'%</div><div class="rl2">正确率</div></div>';
+  html+='<div class="rc3"><div class="rv" style="color:var(--gold)">'+allStars+' ⭐</div><div class="rl2">星辉</div></div>';
+  html+='<div class="rc3"><div class="rv">'+(progress.streak?progress.streak.count:0)+'</div><div class="rl2">连续天数</div></div></div>';
+  // 各塔进度：新账号也展示，给出"下一站去哪"的清晰路径（R5）
+  html+='<div class="sh"><div class="st">⚔️ 各塔进度</div></div><div class="cl">';
+  TOWERS.forEach(function(t){
+    var td=progress.towers[t.id]||{};
+    var TF=TOWER_FLOORS[t.id]||4;
+    var fl=Math.min(td.floors||0,TF);
+    html+='<div class="cc"><div class="cr"><div style="font-size:1.2rem">'+t.icon+'</div>';
+    html+='<div class="cb"><div style="font-size:.85rem;font-weight:600;color:var(--t1)">'+esc(t.name)+'</div>';
+    html+='<div style="margin-top:6px" role="img" aria-label="已通过 '+fl+'/'+TF+' 层">';
+    for(var f=0;f<TF;f++){html+='<span style="display:inline-block;width:16px;height:4px;border-radius:2px;margin-right:4px;background:'+(f<fl?(TF===fl?'var(--ok)':'var(--accent)'):'var(--border)')+'"></span>'}
+    html+='</div></div>';
+    html+='<div style="font-size:.75rem;color:var(--accent);white-space:nowrap">'+fl+'/'+TF+' 层</div></div></div>';
+  });
+  html+='</div>';
+  document.getElementById('sc2').innerHTML=html;
+}
+
+// ====== 错题复习 =====
+var reviewActive=false,reviewQs=[],reviewIdx=0,reviewResults=[];
+
+function renderReview(){
+  var wq=progress.wrongQuestions||[];
+  var hasDone=0;for(var tid in progress.towers){hasDone+=(progress.towers[tid]||{}).total||0}
+  if(!wq.length&&!hasDone){
+    document.getElementById('rc').innerHTML='<div class="es"><div class="ei">🔄</div><div class="et">完成试炼后，这里会生成强化训练计划</div></div>';
+    return;
+  }
+  var kpCount={};
+  wq.forEach(function(w){if(w.kp){kpCount[w.kp]=(kpCount[w.kp]||0)+1}});
+  var kps=Object.keys(kpCount).sort(function(a,b){return kpCount[b]-kpCount[a]});
+  if(!kps.length){
+    document.getElementById('rc').innerHTML='<div class="es"><div class="ei">🎯</div><div class="et">去试炼塔挑战，积累错题后生成复习计划</div></div>';
+    return;
+  }
+  var mastered=0;var mk=progress.masteredKps||{};for(var k in mk){if(mk[k]>0)mastered++}
+  var html='<div class="sh"><div class="st">🎯 强化训练 · 知识点巩固</div></div>';
+  html+='<div style="font-size:.8rem;color:var(--t2);margin:0 0 12px;padding:0 8px">针对薄弱知识点逐题攻克，答对的题自动移出错题本</div>';
+  kps.forEach(function(kp){
+    var count=kpCount[kp];
+    html+='<div class="kpcard">'+
+      '<div><div style="font-size:.9rem;font-weight:600;color:var(--t1)">📌 '+esc(kp)+'</div>'+
+      '<div style="font-size:.75rem;color:var(--t3);margin-top:2px">错题 '+count+' 道 · 需强化巩固</div></div>'+
+      '<button class="kbtn" data-kp="'+esc(kp)+'">⚔ 开始训练</button></div>';
+  });
+  html+='<div class="rsum">'+
+    '<div style="font-size:.8rem;color:var(--t2)">📊 复习统计</div>'+
+    '<div style="display:flex;justify-content:space-around;margin-top:8px">'+
+    '<div><div style="font-size:1.1rem;font-weight:700;color:var(--gold)">'+wq.length+'</div><div style="font-size:.75rem;color:var(--t3)">错题总数</div></div>'+
+    '<div><div style="font-size:1.1rem;font-weight:700;color:var(--accent)">'+kps.length+'</div><div style="font-size:.75rem;color:var(--t3)">薄弱知识点</div></div>'+
+    '<div><div style="font-size:1.1rem;font-weight:700;color:var(--ok)">'+mastered+'</div><div style="font-size:.75rem;color:var(--t3)">已掌握</div></div>'+
+    '</div></div>';
+  document.getElementById('rc').innerHTML=html;
+  // 事件委托：知识点名可能含引号，内联 onclick 拼接会被 HTML 实体还原破坏
+  var rc=document.getElementById('rc');
+  if(!rc._kpBound){
+    rc._kpBound=true;
+    rc.addEventListener('click',function(e){
+      var b=e.target.closest?e.target.closest('.kbtn'):null;
+      if(b&&b.dataset.kp)startKpPractice(b.dataset.kp);
+    });
+  }
+}
+
+// 组卷（复习系统重写：多题推进 + 按uid删除）
+function startKpPractice(kp){
+  var wq=progress.wrongQuestions||[];
+  var related=wq.filter(function(w){return w.kp===kp});
+  if(!related.length)return;
+  reviewActive=true;reviewIdx=0;reviewResults=[];reviewQs=[];
+  related.forEach(function(w,i){
+    var opts=w.options.slice();
+    var correctText=opts[w.answer];
+    shuffleArr(opts);
+    var newAns=opts.indexOf(correctText);
+    reviewQs.push({uid:w.uid||uidOf(w.q),q:w.q,options:opts,answer:newAns>=0?newAns:w.answer,e:w.e,kp:kp});
+  });
+  document.getElementById('prv').style.display='none';
+  document.getElementById('pq').style.display='block';
+  document.getElementById('rqc').innerHTML='<div class="sh"><div class="st">⚔ 强化训练：'+esc(kp)+'</div></div><div style="font-size:.8rem;color:var(--t2);margin-bottom:10px;padding:0 4px">共 '+reviewQs.length+' 题 · 第 1 题开始 · 答对自动移出错题本</div><div id="rqb"></div>';
+  showReviewQ();
+}
+
+function showReviewQ(){
+  reviewAnswered=false;
+  if(reviewIdx>=reviewQs.length){finishReviewQuiz();return}
+  var q=reviewQs[reviewIdx];
+  document.getElementById('rqb').innerHTML='<div class="rqcard"><div style="font-size:.78rem;color:var(--accent);margin-bottom:8px">⚔️ 错题攻克 · 第'+(reviewIdx+1)+'/'+reviewQs.length+'题</div><div style="font-size:.95rem;font-weight:600;color:var(--t1);margin-bottom:14px;line-height:1.6">'+esc(q.q)+'</div><div class="bo">'+q.options.map(function(o,i){return '<button class="boi" onclick="answerReview('+i+')">'+esc(o)+'</button>'}).join('')+'</div><div class="qe" id="rexp" style="margin-top:10px"></div></div>';
+}
+
+var reviewAnswered=false;
+function answerReview(idx){
+  if(reviewAnswered)return;
+  var btns=document.querySelectorAll('#rqb .boi');
+  if(!btns.length)return;
+  reviewAnswered=true;
+  for(var i=0;i<btns.length;i++){btns[i].classList.add('dis');btns[i].disabled=true}
+  var q=reviewQs[reviewIdx];
+  var correct=idx===q.answer;
+  reviewResults.push(correct);
+  btns[q.answer].classList.add('correct');
+  if(!correct)btns[idx].classList.add('wrong');
+  if(correct){
+    // 按uid（或文本回退）删除错题，杜绝索引快照错位
+    var wq=progress.wrongQuestions||[];
+    var pos=-1;
+    for(var j=0;j<wq.length;j++){
+      var w=wq[j];
+      if((w.uid&&w.uid===q.uid)||(!w.uid&&w.q===q.q)){pos=j;break}
+    }
+    if(pos>=0){wq.splice(pos,1);saveProgress()}
+  }
+  var exp=document.getElementById('rexp');
+  if(exp){exp.textContent=(correct?'✓ 正确！已从错题本移除':'✗ 错误。继续加油！')+' '+(q.e||'');exp.classList.add('show')}
+  var last=reviewIdx>=reviewQs.length-1;
+  var btn=document.createElement('button');
+  btn.className='qn';btn.style.marginTop='8px';
+  btn.setAttribute('onclick',last?'finishReviewQuiz()':'nextReviewQ()');
+  btn.textContent=last?(correct?'✅ 完成训练':'继续最后一题'):(correct?'下一题 →':'看解析下一题 →');
+  document.getElementById('rqb').appendChild(btn);
+}
+
+function nextReviewQ(){reviewAnswered=false;reviewIdx++;showReviewQ()}
+
+function finishReviewQuiz(){
+  reviewActive=false;
+  var c=reviewResults.filter(function(r){return r}).length;
+  var t=reviewResults.length;
+  var allCorrect=t>0&&c===t;
+  var rate=t>0?Math.round(c/t*100):0;
+  if(allCorrect&&reviewQs.length&&reviewQs[0].kp){
+    progress.masteredKps=progress.masteredKps||{};
+    progress.masteredKps[reviewQs[0].kp]=(progress.masteredKps[reviewQs[0].kp]||0)+1;
+    saveProgress();
+  }
+  document.getElementById('rqb').innerHTML='<div style="text-align:center;padding:24px"><div style="font-size:2.5rem;margin-bottom:8px">'+(allCorrect?'🎉':'💪')+'</div><div style="font-size:1.4rem;font-weight:700;color:var(--t1)">'+(allCorrect?'训练完成！':'继续加油')+'</div><div style="font-size:.85rem;color:var(--t2);margin:8px 0">正确率：'+c+'/'+t+'（'+rate+'%）</div><div style="font-size:.78rem;color:var(--t3)">答对的题目已移出错题本</div><button class="qn" onclick="switchPageTrial(\'review\')" style="margin:8px 4px">📊 返回复习</button></div>';
+  updateStats();
+}
+
+function renderWrong(){
+  var wq=progress.wrongQuestions||[];
+  if(!wq.length){
+    document.getElementById('wc2').innerHTML='<div class="es"><div class="ei">🎉</div><div class="et">暂无错题，继续保持！</div></div>';
+    return;
+  }
+  var twName={};TOWERS.forEach(function(t){twName[t.id]=t.name});
+  var shown=wq.slice(-50).reverse();
+  var more=wq.length-shown.length;
+  var html='<div class="sh"><div class="st">📋 错题清单 · 共 '+wq.length+' 道'+(more>0?'（显示最近 '+shown.length+' 道）':'')+'</div></div><div class="wl">';
+  shown.forEach(function(w){
+    html+='<div class="wc"><div class="wcq">❌ '+esc(w.q)+'</div>'+
+      '<div class="wca"><span class="wa">✗ 你的答案：'+esc(w.a)+'</span><span class="wcok">✓ 正确答案：'+esc(w.c2)+'</span></div>'+
+      '<div class="wce">'+esc(w.e)+'</div>'+
+      '<div class="wcf"><span>'+esc(twName[w.tower]||w.tower)+'</span><span>'+(w.time?new Date(w.time).toLocaleDateString():'—')+'</span></div></div>';
+  });
+  html+='</div>';
+  document.getElementById('wc2').innerHTML=html;
+}
+
+// ====== 导航 =====
+function confirmLeave(kind){
+  if(kind==='battle'&&battleState.active){return confirm('试炼正在进行，离开将放弃本次挑战。确定离开吗？')}
+  if(kind==='review'&&reviewActive){return confirm('强化训练正在进行，离开将结束本次训练。确定离开吗？')}
+  return true;
+}
+function switchPageTrial(page){
+  // 离开确认护栏（P1-7）
+  if(document.getElementById('pb').style.display!=='none'||battleState.active){
+    if(!confirmLeave('battle'))return;
+    abandonBattle();setScene('learn');
+  }
+  if(reviewActive||document.getElementById('pq').style.display==='block'){
+    if(!confirmLeave('review'))return;
+    reviewActive=false;reviewAnswered=false;
+  }
+  var navs=document.querySelectorAll('.ni');
+  for(var i=0;i<navs.length;i++)navs[i].classList.remove('active');
+  var nav=document.querySelector('.ni[data-page="'+page+'"]');
+  if(nav)nav.classList.add('active');
+  document.getElementById('ph').style.display='none';
+  document.getElementById('pb').style.display='none';
+  document.getElementById('pr').style.display='none';
+  document.getElementById('psx').style.display='none';
+  document.getElementById('prv').style.display='none';
+  document.getElementById('pw').style.display='none';
+  document.getElementById('pq').style.display='none';
+  var map={home:'ph',stats:'psx',review:'prv',wrong:'pw'};
+  var tid=map[page];
+  if(tid){var el=document.getElementById(tid);if(el)el.style.display='block'}
+  updateStats(); // 共享头部摘要随页面切换刷新（R5）
+  if(page==='home')renderTowers()
+  if(page==='stats')renderStats();
+  if(page==='review')renderReview();
+  if(page==='wrong')renderWrong();
+  // R5：战绩页已含完整指标，隐去顶部摘要条避免重复；助手条仅首页出现
+  var _ss=document.querySelector('.ss'),_tsb=document.querySelector('.tsb');
+  if(_ss)_ss.style.display=(page==='stats')?'none':'';
+  if(_tsb)_tsb.style.display=(page==='home')?'':'none';
+  updateBackBtn();
+}
+function goHome(){
+  switchPageTrial('home');
+  document.getElementById('pr').style.display='none';
+  renderTowers();
+  updateBackBtn();
+}
+
+// ====== 返回/锁定/退出 =====
+function updateBackBtn(){
+  var b=document.getElementById('back-btn');if(!b)return;
+  var pb=document.getElementById('pb'),pr=document.getElementById('pr'),pq=document.getElementById('pq');
+  var vis=function(el){return !!el&&(el.style.display==='block'||el.style.display==='flex')};
+  var inBattleOrResult=vis(pb)||vis(pr)||vis(pq);
+  b.style.display=inBattleOrResult?'inline-flex':'none';
+}
+function goBack(){
+  if(document.getElementById('pb').style.display!=='none'){
+    if(!confirmLeave('battle'))return;
+    abandonBattle();setScene('learn');
+    switchPageTrial('home');return;
+  }
+  if(document.getElementById('pq').style.display==='block'||reviewActive){
+    if(!confirmLeave('review'))return;
+    reviewActive=false;reviewAnswered=false;switchPageTrial('review');return;
+  }
+  if(document.getElementById('pr').style.display!=='none'){switchPageTrial('home');return}
+  goHome();
+}
+function doLock(){
+  if(!user)return;
+  if(battleState.active){if(!confirmLeave('battle'))return;abandonBattle()}
+  loginFails=0;loginTarget='';
+  document.getElementById('action-toolbar').style.display='none';
+  showLockView();
+}
+function doLogout(){
+  if(!confirm('确定退出登录吗？'))return;
+  if(battleState.active){abandonBattle()}
+  user=null;
+  document.getElementById('action-toolbar').style.display='none';
+  showLV();
+}
+
+// 切页检测（visibilitychange）：战斗中离开超过3秒，回来时提醒专注
+var _hiddenAt=0;
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){_hiddenAt=Date.now()}
+  else if(battleState.active&&_hiddenAt&&Date.now()-_hiddenAt>3000){
+    var exp=document.getElementById('exp');
+    if(exp&&battleState.answers[battleState.qIdx]===undefined){exp.textContent='👀 检测到切页，请专注当前试炼！';exp.classList.add('show')}
+    _hiddenAt=0;
+  }
+});
+
+// ====== popstate 语义化（不再强制登出，战斗中拦截确认） ======
+window.addEventListener('popstate',function(e){
+  if(battleState.active){
+    if(confirm('试炼正在进行，离开将放弃本次挑战。确定离开吗？')){
+      abandonBattle();setScene('learn');switchPageTrial('home');
+    }else{
+      try{history.pushState({page:'game'},'',location.pathname+location.search+(location.hash||'#game'))}catch(err){}
+    }
+    return;
+  }
+  if(reviewActive){
+    if(confirm('强化训练正在进行，离开将结束本次训练。确定离开吗？')){
+      reviewActive=false;
+      switchPageTrial('review');
+    }else{
+      try{history.pushState({page:'game'},'',location.pathname+location.search+(location.hash||'#game'))}catch(err){}
+    }
+    return;
+  }
+  // 登录态保持：不登出、不重置进度
+});
+
+// ====== Init ======
+showLV();
+// 首次使用（本机没有任何档案）：先引导注册，未注册不能直接进入
+(function(){
+  if(hasAnyProfile())return;
+  setTimeout(function(){try{showRegister(true)}catch(e){}},320);
+})();
+// 沙箱（无 allow-same-origin）或隐私模式下本地存储不可用：
+// 功能不降级（适配层走内存表），但必须明确告知"本次进度不保存"，避免用户误以为存档成功
+(function(){
+  if(Store.available())return;
+  var el=document.getElementById('lenv');
+  if(el)el.classList.add('show');
+})();
+</script></body></html>
