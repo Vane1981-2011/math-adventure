@@ -366,13 +366,13 @@ body[data-scene="battle"] #pb>.bp{width:100%}
 <div class="lsu">巅 峰 试 炼 · M A T H<span class="lssp"></span>A D V E N T U R E</div>
 <div class="lhh">选 择 你 的 守 护 星 座</div>
 <div class="lhg" id="lhg"></div>
-<div class="lin"><input id="lnick" type="text" placeholder="冒险者名號" maxlength="8" autocomplete="off" aria-label="冒险者名號"></div>
-<div class="lin"><button id="lock-back" onclick="showLoginView()">← 返回登录</button><div class="lpw"><input id="lpin" type="password" placeholder="六位密碼" maxlength="6" inputmode="numeric" autocomplete="off" aria-label="六位数字密码"><button class="lpt" id="lpt" type="button" aria-label="切换密码可见性" onclick="togglePwd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+<div class="lin"><input id="lnick" type="text" placeholder="冒险者名号" maxlength="8" autocomplete="off" aria-label="冒险者名号"></div>
+<div class="lin"><button id="lock-back" onclick="showLoginView()">← 返回登录</button><div class="lpw"><input id="lpin" type="password" placeholder="6位数字密码" maxlength="6" inputmode="numeric" autocomplete="off" aria-label="六位数字密码"><button class="lpt" id="lpt" type="button" aria-label="切换密码可见性" onclick="togglePwd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
 <div class="ler" id="lerr" role="alert"></div>
 <div class="lfl"><a role="button" tabindex="0" onclick="handleForgotPwd()">忘记密码？</a><span class="ldv">|</span><a id="go-register" role="button" tabindex="0" onclick="showRegister()">新用户注册</a></div>
-<div><button class="lbn" id="lbtn">开 启 试 炼</button></div>
+<div class="lhint" style="text-align:center;font-size:.72rem;color:var(--t3);line-height:1.6;margin:2px 0 10px">第一次使用？请先点「新用户注册」创建本机档案<br>已有档案：输入名号 + 6 位数字密码直接登录</div><div><button class="lbn" id="lbtn">开 启 试 炼</button></div>
 <!-- Registration Modal -->
-<div class="rmb" id="reg-modal" role="dialog" aria-modal="true" aria-label="新冒险者注册"><div class="rmc"><div class="rmt">新冒险者注册</div><div class="rmf"><label for="reg-nick">冒险者名號</label><input id="reg-nick" type="text" placeholder="最多8个字" maxlength="8" autocomplete="off"><div class="rme" id="reg-nick-err"></div></div><div class="rmf"><label for="reg-pin">本机密码（6位数字）</label><input id="reg-pin" type="password" placeholder="••••••" maxlength="6" inputmode="numeric" autocomplete="off"><div class="rme" id="reg-pin-err"></div></div><div class="rmf"><label for="reg-pin2">再次输入密码</label><input id="reg-pin2" type="password" placeholder="••••••" maxlength="6" inputmode="numeric" autocomplete="off"><div class="rme" id="reg-pin2-err"></div></div><div class="rmh">密码仅保存在本机，忘记无法找回。<br>请勿使用常用密码。</div><button class="lbn" id="reg-submit" onclick="doRegister()">注 册 远 征</button><div class="rmca" role="button" tabindex="0" onclick="closeRegister()">← 返回登录</div></div></div>
+<div class="rmb" id="reg-modal" role="dialog" aria-modal="true" aria-label="新冒险者注册"><div class="rmc"><div class="rmt">新冒险者注册</div><div class="rmf"><label for="reg-nick">冒险者名号</label><input id="reg-nick" type="text" placeholder="最多8个字" maxlength="8" autocomplete="off"><div class="rme" id="reg-nick-err"></div></div><div class="rmf"><label for="reg-pin">本机密码（6位数字）</label><input id="reg-pin" type="password" placeholder="6位数字" maxlength="6" inputmode="numeric" autocomplete="off"><div class="rme" id="reg-pin-err"></div></div><div class="rmf"><label for="reg-pin2">再次输入密码</label><input id="reg-pin2" type="password" placeholder="6位数字" maxlength="6" inputmode="numeric" autocomplete="off"><div class="rme" id="reg-pin2-err"></div></div><div class="rmh">密码仅保存在本机，忘记无法找回。<br>请勿使用常用密码。</div><button class="lbn" id="reg-submit" onclick="doRegister()">注 册 远 征</button><div class="rmca" role="button" tabindex="0" onclick="closeRegister()">← 返回登录</div></div></div>
 <div class="lenv" id="lenv" role="status"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span>预览环境不支持本地存储，本次进度不会保存</span></div>
 </div></div>
 
@@ -539,7 +539,7 @@ const LH = (function(){ return JSON.parse(document.getElementById('lhdata').text
     var errEl=document.getElementById('lerr');
     var pinEl=document.getElementById('lpin');
     function fail(msg){pinEl.value='';errEl.textContent=msg;errEl.classList.add('show');errEl.classList.remove('info');pinEl.classList.add('input-error');setTimeout(function(){pinEl.classList.remove('input-error')},400)}
-    if(!n){errEl.textContent='请输入你的冒险者名號';errEl.classList.add('show');document.getElementById('lnick').classList.add('input-error');setTimeout(function(){document.getElementById('lnick').classList.remove('input-error')},400);return}
+    if(!n){errEl.textContent='请输入你的冒险者名号';errEl.classList.add('show');document.getElementById('lnick').classList.add('input-error');setTimeout(function(){document.getElementById('lnick').classList.remove('input-error')},400);return}
     if(!pv||pv.length!==6||!/^\d{6}$/.test(pv)){fail('密码需为6位数字');return}
     if(loginTarget&&loginTarget!==n){loginFails=0}
     loginTarget=n;
@@ -569,7 +569,7 @@ const LH = (function(){ return JSON.parse(document.getElementById('lhdata').text
       user=existing;
       loadProgressFor(n);
     }else{
-      // 未注册名號不允许直接登录：必须先注册，避免输错一个字就生成空档案
+      // 未注册名号不允许直接登录：必须先注册，避免输错一个字就生成空档案
       loginFails=0;loginTarget='';
       regPrefill=n;
       errEl.textContent='本机没有「'+n+'」的档案。请先点下方「新用户注册」创建；换设备或清缓存会导致原档案丢失。';
@@ -644,8 +644,8 @@ function doRegister(){
   ni.classList.remove('input-error');pi.classList.remove('input-error');
   if(p2e)p2e.textContent='';if(p2)p2.classList.remove('input-error');
 
-  if(!n){regFail(ni,ne,'请输入冒险者名號');return}
-  if(n.length>8){regFail(ni,ne,'名號最多 8 个字');return}
+  if(!n){regFail(ni,ne,'请输入冒险者名号');return}
+  if(n.length>8){regFail(ni,ne,'名号最多 8 个字');return}
   if(!pv||pv.length!==6||!/^\d{6}$/.test(pv)){regFail(pi,pe,'密码需为 6 位数字');return}
   var p2v=p2?p2.value:'';
   if(!p2v||p2v.length!==6||!/^\d{6}$/.test(p2v)){regFail(p2,p2e,'请再次输入 6 位数字密码');return}
@@ -653,7 +653,7 @@ function doRegister(){
 
   var existing=null;
   try{existing=getUserData(n)}catch(e){}
-  if(existing){regFail(ni,ne,'该名號已存在，请直接登录或换一个名號');return}
+  if(existing){regFail(ni,ne,'该名号已存在，请直接登录或换一个名号');return}
 
   _regBusy=true;
   var oldTxt=sb.textContent;
